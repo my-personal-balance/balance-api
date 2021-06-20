@@ -1,0 +1,185 @@
+openapi: 3.0.0
+info:
+  title: Balance Application API
+  description: |
+    This API allows writing down marks on a Tic Tac Toe board
+    and requesting the state of the board or of individual squares.
+  version: 1.0.0
+
+components:
+  parameters:
+    UserId:
+      in: path
+      name: user_id
+      description: Unique User ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+    AccountId:
+      in: path
+      name: account_id
+      description: Unique Account ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+  schemas:
+    User:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: User id
+        name:
+          type: string
+          nullable: true
+          example: 'John Doe'
+          description: The user name
+        created_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was created
+        updated_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was last modified/updated
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: account id
+        alias:
+          type: string
+          nullable: true
+          example: 'Santander'
+          description: The account alias
+        user_id:
+          type: integer
+          example: 1
+          description: The user id
+        type:
+          type: string
+          nullable: true
+          x-extensible-enum:
+            - checking
+            - savings
+            - investments
+            - others
+          example: 'checking'
+          description: The account type
+        created_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was created
+        updated_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was last modified/updated
+
+    Accounts:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+
+paths:
+
+  /users:
+    post:
+      summary: Creates an user
+      operationId: balance_api.api.users.create_user
+      description: Creates an user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        201:
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+    get:
+      summary: Retrieves an user
+      operationId: balance_api.api.users.me
+      description: Retrieves an user
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+
+  /users/{user_id}/accounts:
+    post:
+      summary: Creates an user account
+      operationId: balance_api.api.accounts.create_account
+      description: Creates an user account
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        201:
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+
+    get:
+      summary: Lists all user accounts
+      operationId: balance_api.api.accounts.list_accounts
+      description: Lists all user accounts
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Accounts'
+
+  /users/{user_id}/accounts/{account_id}:
+    get:
+      summary: Retrieves an user account
+      operationId: balance_api.api.accounts.find_account
+      description: Retrieves an user account
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'

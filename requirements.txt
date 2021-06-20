@@ -1,0 +1,9 @@
+alembic
+backoff
+connexion[swagger-ui]
+flask-cors
+flask-sqlalchemy
+meza
+psycopg2-binary
+sqlalchemy
+# csv2ofx==0.27.0

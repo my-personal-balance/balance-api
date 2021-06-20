@@ -1,10 +1,11 @@
 from flask import jsonify
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
 from balance_api.api import Resource
 from balance_api.connection.db import database_operation
 from balance_api.models.accounts import Account
-from sqlalchemy.exc import NoResultFound
+
 
 class AccountResource(Resource):
     fields = [

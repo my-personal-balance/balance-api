@@ -26,6 +26,15 @@ components:
         type: integer
         format: int32
 
+    TransactionId:
+      in: path
+      name: transaction_id
+      description: Unique Transaction ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
   schemas:
     User:
       type: object
@@ -100,6 +109,108 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Account'
+
+    AccountTag:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: account id
+        value:
+          type: string
+          nullable: true
+          example: 'Miscellaneous'
+          description: The account tag value
+        account_id:
+          type: integer
+          example: 1
+          description: The user account id
+        created_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was created
+        updated_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was last modified/updated
+
+    AccountTags:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountTag'
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "c88e96f6-24ae-49cd-8d6a-fa4fa753e17f"
+          description: transaction id
+        previous_transaction_id:
+          type: string
+          example: "1a574a51-5aea-4260-8014-0f4172972396"
+          description: previous transaction id
+        date:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26'
+          description: The timestamp when the transaction was realized
+        transaction_type:
+          type: string
+          nullable: true
+          x-extensible-enum:
+            - EXPENSE
+            - INCOME
+            - TRANSFER
+            - REFUND
+            - INVESTMENT
+            - IOU
+          example: 'EXPENSE'
+          description: The type of transaction
+        amount:
+          type: number
+          format: float
+          example: 3.15
+          description: The amount of the transaction
+        account_id:
+          type: integer
+          example: 2
+          description: Account ID
+        description:
+          type: string
+          example: "Paypal"
+          description: Transaction description
+        tag:
+          $ref: '#/components/schemas/AccountTag'
+        created_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was created
+        updated_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the user was last modified/updated
+
+    Transactions:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
 
 paths:
 
@@ -183,3 +294,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Account'
+
+
+  /users/{user_id}/accounts/{account_id}/tags:
+    get:
+      summary: Retrieves the list of account tags for a user account
+      operationId: balance_api.api.account_tags.list_account_tags
+      description: Retrieves the list of account tags for a user account
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountTags'
+
+
+  /users/{user_id}/accounts/{account_id}/transactions:
+    get:
+      summary: Retrieves the list of transactions for a user account
+      operationId: balance_api.api.transactions.list_transactions
+      description: Retrieves the list of transactions for a user account
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transactions'
+
+  /users/{user_id}/accounts/{account_id}/transactions/{transaction_id}:
+    get:
+      summary: Retrieves a specific transactions for a user account
+      operationId: balance_api.api.transactions.find_transaction
+      description: Retrieves a specific transactions for a user account
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transactions'

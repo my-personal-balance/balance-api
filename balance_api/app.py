@@ -1,5 +1,6 @@
 import connexion
 from flask_cors import CORS
+from flask_compress import Compress
 from flask_sqlalchemy import SQLAlchemy
 
 import config
@@ -19,6 +20,9 @@ def create_app():
     flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     CORS(flask_app)
+
+    compress = Compress()
+    compress.init_app(flask_app)
 
     return connexion_app
 

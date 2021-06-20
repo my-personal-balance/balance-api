@@ -1,6 +1,7 @@
 alembic
 backoff
 connexion[swagger-ui]
+flask-compress
 flask-cors
 flask-sqlalchemy
 meza

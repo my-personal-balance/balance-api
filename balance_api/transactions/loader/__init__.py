@@ -3,42 +3,31 @@ import uuid
 from datetime import datetime
 
 from meza.io import read_csv
-from sqlalchemy.orm.session import Session
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm.session import Session
 
 from balance_api.connection.db import database_operation
 from balance_api.models.account_tags import AccountTag
 from balance_api.models.transactions import Transaction, TransactionType
+from balance_api.transactions.mappings import n26
 
 
 class SourceFileType(enum.Enum):
     CSV = "csv"
 
 
-def transform_records(records, account_id: int, session: Session):
-    """
-    {
-        'Date': '2021-06-19',
-        'Payee': 'PAYPAL *COMIXOLOGY',
-        'Account number': '',
-        'Transaction type': 'MasterCard Payment',
-        'Payment reference': '',
-        'Category': 'Shopping',
-        'Amount (EUR)': '-7.13',
-        'Amount (Foreign Currency)': '-7.13',
-        'Type Foreign Currency': 'EUR',
-        'Exchange Rate': '1.0'
-    }
-    """
+def transform_records(records, mapping: dict, account_id: int, session: Session):
+
     for r in records:
-        account_tag = find_or_create_account_tag(session, account_id, r.get("Category"))
-        amount = float(r.get("Amount (EUR)"))
-        transaction_type = TransactionType.EXPENSE if amount < 0.0 else TransactionType.INCOME
+        tag_value = mapping.get('tag')(r)
+        account_tag = find_or_create_account_tag(session, account_id, tag_value)
+        amount = float(mapping.get('amount')(r))
+
         yield Transaction(
-            date=datetime.strptime(r.get('Date'), "%Y-%M-%d"),
-            transaction_type=transaction_type,
+            date=mapping.get('date')(r),
+            transaction_type=mapping.get('type')(r),
             amount=amount,
-            description=r.get("Payee"),
+            description=mapping.get('description')(r),
             account_id=account_id,
             account_tag=account_tag,
         )
@@ -67,10 +56,19 @@ def find_or_create_account_tag(session: Session, account_id: int, tag_value: str
 
 
 @database_operation(max_tries=3)
-def load_file(file_path: str, source_type: SourceFileType, account_id: int, session: Session):
-    records = read_csv(file_path)
-    for transaction in transform_records(records, account_id=account_id, session=session):
-        transaction.id = uuid.uuid4()
-        session.add(transaction)
+def load_file(file_path: str, source_type: SourceFileType, mapping: dict, account_id: int, session: Session):
+    records = None
+    if source_type == SourceFileType.CSV:
+        records = read_csv(file_path)
 
-    session.commit()
+    if records:
+        for transaction in transform_records(records, mapping, account_id=account_id, session=session):
+            transaction.id = uuid.uuid4()
+            session.add(transaction)
+
+        session.commit()
+
+
+# For running locally
+if __name__ == "__main__":
+    load_file('/Users/julianovidal/Downloads/n26-csv-transactions.csv', SourceFileType.CSV, n26.mapping, 1)

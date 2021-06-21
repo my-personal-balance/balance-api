@@ -42,11 +42,12 @@ class UserResource(Resource):
         return user_resource
 
 
-def me():
-    pass
-
-
 @database_operation(max_tries=3)
+def me(session: Session):
+    user = session.query(User).first()
+    return jsonify(UserResource(user).serialize())
+
+
 def create_user(session: Session, **user):
     user_resource = UserResource.deserialize(user["body"], create=True)
     new_user = User(**user_resource)

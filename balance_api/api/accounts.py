@@ -1,10 +1,15 @@
 from flask import jsonify
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
 from balance_api.api import Resource
 from balance_api.connection.db import database_operation
-from balance_api.models.accounts import Account
+from balance_api.models.accounts import (
+    Account,
+    find_account as find_a,
+    list_accounts as list_a,
+    create_account as create_a,
+)
+from balance_api.models.transactions import get_balance
 
 
 class AccountResource(Resource):
@@ -20,7 +25,7 @@ class AccountResource(Resource):
         "updated_at",
     ]
 
-    def serialize(self) -> dict:
+    def serialize(self, **kwargs) -> dict:
         resource = super().serialize()
         account: Account = self.instance
 
@@ -32,6 +37,8 @@ class AccountResource(Resource):
                 "type": account.type.name,
             }
         )
+
+        resource.update(**kwargs)
 
         return resource
 
@@ -51,33 +58,33 @@ class AccountResource(Resource):
 
 @database_operation(max_tries=3)
 def find_account(user_id: int, account_id: int, session: Session):
-    q = (
-        session.query(Account).where(Account.user_id == user_id, Account.id == account_id)
-    )
-    try:
-        account = q.one()
-    except NoResultFound:
+    account = find_a(user_id, account_id, session)
+    if not account:
         return {}, 404
 
-    return jsonify(AccountResource(account).serialize())
+    account_balance = get_balance(user_id, account_id, session)
+
+    response = jsonify(AccountResource(account).serialize(**{
+        "balance": account_balance
+    }))
+    return response
 
 
 @database_operation(max_tries=3)
 def list_accounts(user_id: int, session: Session):
-    q = (
-        session.query(Account).where(Account.user_id == user_id).order_by(Account.id)
-    )
-    accounts = [
-        AccountResource(account).serialize() for account in q.all()
-    ]
-    return jsonify({"items": accounts})
+    accounts = []
+    for account in list_a(user_id, session):
+        account_balance = get_balance(user_id, account.id, session)
+        account = AccountResource(account).serialize(**{
+            "balance": account_balance
+        })
+        accounts.append(account)
+
+    return jsonify({"accounts": accounts})
 
 
 @database_operation(max_tries=3)
 def create_account(user_id: int, session: Session, **account):
     account_resource = AccountResource.deserialize(user_id, account["body"], create=True)
-    new_account = Account(**account_resource)
-    session.add(new_account)
-    session.commit()
-
+    new_account = create_a(account_resource, session)
     return jsonify(AccountResource(new_account).serialize()), 201

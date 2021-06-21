@@ -17,7 +17,7 @@ class Resource:
         return self._instance
 
     @classmethod
-    def deserialize(cls, offer_data, create=True) -> dict:
+    def deserialize(cls, data, create=True) -> dict:
         raise NotImplementedError
 
     def serialize(self, **kwargs) -> dict:

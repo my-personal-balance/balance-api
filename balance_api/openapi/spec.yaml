@@ -35,6 +35,15 @@ components:
         type: string
         format: uuid
 
+    AccountIdQuery:
+      in: query
+      name: account_id
+      description: User account id
+      required: false
+      schema:
+        type: integer
+        format: int32
+
   schemas:
     User:
       type: object
@@ -89,6 +98,11 @@ components:
             - others
           example: 'checking'
           description: The account type
+        balance:
+          type: number
+          format: float
+          example: 3.15
+          description: The account balance
         created_at:
           type: string
           nullable: true
@@ -105,7 +119,7 @@ components:
     Accounts:
       type: object
       properties:
-        items:
+        accounts:
           type: array
           items:
             $ref: '#/components/schemas/Account'
@@ -142,7 +156,7 @@ components:
     AccountTags:
       type: object
       properties:
-        items:
+        tags:
           type: array
           items:
             $ref: '#/components/schemas/AccountTag'
@@ -181,10 +195,8 @@ components:
           format: float
           example: 3.15
           description: The amount of the transaction
-        account_id:
-          type: integer
-          example: 2
-          description: Account ID
+        account:
+          $ref: '#/components/schemas/Account'
         description:
           type: string
           example: "Paypal"
@@ -207,10 +219,15 @@ components:
     Transactions:
       type: object
       properties:
-        items:
+        transactions:
           type: array
           items:
             $ref: '#/components/schemas/Transaction'
+        balance:
+          type: number
+          format: float
+          example: 3.15
+          description: Transaction sum
 
 paths:
 
@@ -312,15 +329,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountTags'
 
-
-  /users/{user_id}/accounts/{account_id}/transactions:
+  /users/{user_id}/transactions:
     get:
-      summary: Retrieves the list of transactions for a user account
+      summary: Retrieves the list of transactions for a user
       operationId: balance_api.api.transactions.list_transactions
-      description: Retrieves the list of transactions for a user account
+      description: Retrieves the list of transactions for a user
       parameters:
         - $ref: '#/components/parameters/UserId'
-        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/AccountIdQuery'
       responses:
         200:
           description: OK

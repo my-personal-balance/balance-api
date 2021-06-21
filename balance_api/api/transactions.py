@@ -1,11 +1,16 @@
 from flask import jsonify
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
 from balance_api.api import Resource
-from balance_api.connection.db import database_operation
-from balance_api.models.transactions import Transaction
 from balance_api.api.account_tags import AccountTagResource
+from balance_api.api.accounts import AccountResource
+from balance_api.connection.db import database_operation
+from balance_api.models.transactions import (
+    Transaction,
+    find_transaction as find_t,
+    list_transactions as list_t,
+    get_balance,
+)
 
 
 class TransactionResource(Resource):
@@ -36,7 +41,7 @@ class TransactionResource(Resource):
                 "date": transaction.date,
                 "transaction_type": transaction.transaction_type.name,
                 "amount": transaction.amount,
-                "account_id": transaction.account_id,
+                "account": AccountResource(transaction.account).serialize(),
                 "description": transaction.description,
                 "tag": AccountTagResource(transaction.account_tag).serialize(),
             }
@@ -60,24 +65,18 @@ class TransactionResource(Resource):
 
 @database_operation(max_tries=3)
 def find_transaction(user_id: int, account_id: int, transaction_id: int, session: Session):
-    q = (
-        session.query(Transaction).where(Transaction.account_id == account_id, Transaction.id == transaction_id)
-    )
-    try:
-        transaction = q.one()
-    except NoResultFound:
+    transaction = find_t(user_id, account_id, transaction_id, session)
+    if not transaction:
         return {}, 404
 
     return jsonify(TransactionResource(transaction).serialize())
 
 
 @database_operation(max_tries=3)
-def list_transactions(user_id: int, account_id: int, session: Session):
-    q = (
-        session.query(Transaction).where(Transaction.account_id == account_id).order_by(Transaction.date)
-    )
-    transactions = [
-        TransactionResource(transaction).serialize() for transaction in q.all()
-    ]
-    return jsonify({"items": transactions})
-
+def list_transactions(user_id: int, account_id: int = None, session: Session = None):
+    transactions = list_t(user_id, account_id, session)
+    balance = get_balance(user_id, account_id, session)
+    return jsonify({
+        "transactions": [TransactionResource(transaction).serialize() for transaction in transactions],
+        "balance": balance,
+    })

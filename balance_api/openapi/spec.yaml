@@ -92,10 +92,10 @@ components:
           type: string
           nullable: true
           x-extensible-enum:
-            - checking
-            - savings
-            - investments
-            - others
+            - CHECKING
+            - SAVINGS
+            - INVESTMENTS
+            - OTHERS
           example: 'checking'
           description: The account type
         balance:

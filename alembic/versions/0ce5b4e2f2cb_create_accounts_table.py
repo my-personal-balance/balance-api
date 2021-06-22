@@ -29,7 +29,7 @@ def upgrade():
             Column("id", INTEGER, primary_key=True, autoincrement=True),
             Column("alias", TEXT),
             Column("user_id", INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")),
-            Column("type", Enum(AccountType)),
+            Column("type", Enum(AccountType), nullable=False),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),
         )

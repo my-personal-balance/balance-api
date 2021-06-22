@@ -75,8 +75,10 @@ def find_transaction(user_id: int, account_id: int, transaction_id: int, session
 @database_operation(max_tries=3)
 def list_transactions(user_id: int, account_id: int = None, session: Session = None):
     transactions = list_t(user_id, account_id, session)
-    balance = get_balance(user_id, account_id, session)
+    balance, incomes, expenses = get_balance(user_id, account_id, session)
     return jsonify({
         "transactions": [TransactionResource(transaction).serialize() for transaction in transactions],
         "balance": balance,
+        "incomes": incomes,
+        "expenses": expenses
     })

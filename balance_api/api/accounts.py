@@ -34,7 +34,7 @@ class AccountResource(Resource):
                 "id": account.id,
                 "alias": account.alias,
                 "user_id": account.user_id,
-                "type": account.type.name,
+                "type": account.type.name if account.type else None,
             }
         )
 
@@ -62,10 +62,12 @@ def find_account(user_id: int, account_id: int, session: Session):
     if not account:
         return {}, 404
 
-    account_balance = get_balance(user_id, account_id, session)
+    balance, incomes, expenses = get_balance(user_id, account_id, session)
 
     response = jsonify(AccountResource(account).serialize(**{
-        "balance": account_balance
+        "balance": balance,
+        "incomes": incomes,
+        "expenses": expenses
     }))
     return response
 
@@ -74,9 +76,11 @@ def find_account(user_id: int, account_id: int, session: Session):
 def list_accounts(user_id: int, session: Session):
     accounts = []
     for account in list_a(user_id, session):
-        account_balance = get_balance(user_id, account.id, session)
+        balance, incomes, expenses = get_balance(user_id, account.id, session)
         account = AccountResource(account).serialize(**{
-            "balance": account_balance
+            "balance": balance,
+            "incomes": incomes,
+            "expenses": expenses,
         })
         accounts.append(account)
 

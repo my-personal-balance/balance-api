@@ -11,7 +11,7 @@ from sqlalchemy import (
     FLOAT,
     DateTime,
 )
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
@@ -75,16 +75,27 @@ def list_transactions(user_id: int, account_id: int, session: Session) -> []:
     if account_id:
         q = q.filter(Account.id == account_id)
 
-    q.order_by(Transaction.date.desc())
+    q = q.order_by(Transaction.date.desc())
     return [transaction for transaction in q.all()]
 
 
-def get_balance(user_id: int, account_id: int, session: Session) -> float:
+def get_balance(user_id: int, account_id: int, session: Session) -> (float, float, float):
+    income = case((Transaction.amount >= 0.0, Transaction.amount), else_=0.0)
+    expenses = case((Transaction.amount < 0.0, Transaction.amount), else_=0.0)
     q = (
-        session.query(func.sum(Transaction.amount)).join(Account).join(User).filter(User.id == user_id)
+        session.query(
+            func.sum(Transaction.amount),
+            func.sum(income),
+            func.sum(expenses),
+        ).join(Account).join(User).filter(User.id == user_id)
     )
 
     if account_id:
         q = q.filter(Account.id == account_id)
 
-    return round(q.scalar(), 2)
+    result = q.one()
+    return (
+        round(result[0], 2) if result[0] else 0.0,
+        round(result[1], 2) if result[1] else 0.0,
+        round(result[2], 2) if result[2] else 0.0
+    )

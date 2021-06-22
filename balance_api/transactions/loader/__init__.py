@@ -2,18 +2,19 @@ import enum
 import uuid
 from datetime import datetime
 
-from meza.io import read_csv
+from meza.io import read_csv, read_xls
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
 from balance_api.connection.db import database_operation
 from balance_api.models.account_tags import AccountTag
 from balance_api.models.transactions import Transaction, TransactionType
-from balance_api.transactions.mappings import n26
+from balance_api.transactions.mappings import n26, openbank
 
 
 class SourceFileType(enum.Enum):
     CSV = "csv"
+    XLS = "xls"
 
 
 def transform_records(records, mapping: dict, account_id: int, session: Session):
@@ -60,6 +61,8 @@ def load_file(file_path: str, source_type: SourceFileType, mapping: dict, accoun
     records = None
     if source_type == SourceFileType.CSV:
         records = read_csv(file_path)
+    elif source_type == SourceFileType.XLS:
+        records = read_xls(file_path)
 
     if records:
         for transaction in transform_records(records, mapping, account_id=account_id, session=session):
@@ -71,4 +74,5 @@ def load_file(file_path: str, source_type: SourceFileType, mapping: dict, accoun
 
 # For running locally
 if __name__ == "__main__":
-    load_file('/Users/julianovidal/Downloads/n26-csv-transactions.csv', SourceFileType.CSV, n26.mapping, 1)
+    # load_file('/Users/julianovidal/Downloads/n26-csv-transactions.csv', SourceFileType.CSV, n26.mapping, 1)
+    load_file('/Users/julianovidal/Downloads/openbank.xlsx', SourceFileType.XLS, openbank.mapping, 6)

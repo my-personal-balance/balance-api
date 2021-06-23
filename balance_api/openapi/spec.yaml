@@ -44,6 +44,44 @@ components:
         type: integer
         format: int32
 
+    PeriodType:
+      in: query
+      name: period_type
+      description: Period Type
+      required: false
+      schema:
+        type: string
+        x-extensible-enum:
+          - custom
+          - last_month
+
+    PeriodOffset:
+      in: query
+      name: period_offset
+      description: Period Offset
+      required: false
+      schema:
+        type: integer
+        format: int32
+
+    StartDate:
+      in: query
+      name: start_date
+      description: Start Date
+      required: false
+      schema:
+        type: string
+        format: date-time
+
+    EndDate:
+      in: query
+      name: end_date
+      description: End Date
+      required: false
+      schema:
+        type: string
+        format: date-time
+
   schemas:
     User:
       type: object
@@ -337,6 +375,10 @@ paths:
       parameters:
         - $ref: '#/components/parameters/UserId'
         - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/PeriodType'
+        - $ref: '#/components/parameters/PeriodOffset'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
       responses:
         200:
           description: OK

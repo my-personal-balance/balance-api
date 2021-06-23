@@ -1,5 +1,6 @@
 import enum
-from datetime import datetime
+from datetime import datetime, date
+import calendar
 
 from sqlalchemy import (
     Column,
@@ -11,7 +12,7 @@ from sqlalchemy import (
     FLOAT,
     DateTime,
 )
-from sqlalchemy import func, case
+from sqlalchemy import func, case, between
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
@@ -29,6 +30,13 @@ class TransactionType(enum.Enum):
     REFUND = "refund"
     INVESTMENT = "investment"
     IOU = "iou"
+
+
+class PeriodType(enum.Enum):
+    CUSTOM = "custom"
+    CURRENT_MONTH = "current_month"
+    LAST_MONTH = "last_month"
+    LAST_YEAR = "last_year"
 
 
 class Transaction(Base):
@@ -67,19 +75,53 @@ def find_transaction(user_id: int, account_id: int, transaction_id: int, session
         return None
 
 
-def list_transactions(user_id: int, account_id: int, session: Session) -> []:
+def list_transactions(
+        user_id: int,
+        account_id: int = None,
+        period_type: int = None,
+        period_offset: int = None,
+        start_date: int = None,
+        end_date: int = None,
+        session: Session = None
+) -> []:
     q = (
         session.query(Transaction).join(Account).join(User).filter(User.id == user_id)
     )
 
     if account_id:
         q = q.filter(Account.id == account_id)
+    if period_type:
+        start_date, end_date = get_date_rage(PeriodType(period_type), start_date, end_date)
+        q = q.filter(between(Transaction.date, start_date, end_date))
 
     q = q.order_by(Transaction.date.desc())
     return [transaction for transaction in q.all()]
 
 
-def get_balance(user_id: int, account_id: int, session: Session) -> (float, float, float):
+def get_date_rage(period_type: PeriodType, start_date: str, end_date: str):
+    # if PeriodType(period_type) == PeriodType.CUSTOM:
+    if PeriodType(period_type) == PeriodType.CURRENT_MONTH:
+        today = date.today()
+        month_range = calendar.monthrange(today.year, today.month)
+        start_date = date.today().replace(day=1)
+        end_date = start_date.replace(day=month_range[1])
+    elif PeriodType(period_type) == PeriodType.LAST_MONTH:
+        first = date.today().replace(day=1)
+        end_date = first - datetime.timedelta(days=1)
+        start_date = end_date.replace(day=1)
+
+    return start_date, end_date
+
+
+def get_balance(
+    user_id: int,
+    account_id: int = None,
+    period_type: int = None,
+    period_offset: int = None,
+    start_date: int = None,
+    end_date: int = None,
+    session: Session = None
+) -> (float, float, float):
     income = case((Transaction.amount >= 0.0, Transaction.amount), else_=0.0)
     expenses = case((Transaction.amount < 0.0, Transaction.amount), else_=0.0)
     q = (
@@ -92,6 +134,9 @@ def get_balance(user_id: int, account_id: int, session: Session) -> (float, floa
 
     if account_id:
         q = q.filter(Account.id == account_id)
+    if period_type:
+        start_date, end_date = get_date_rage(PeriodType(period_type), start_date, end_date)
+        q = q.filter(between(Transaction.date, start_date, end_date))
 
     result = q.one()
     return (

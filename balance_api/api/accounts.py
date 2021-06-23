@@ -62,29 +62,38 @@ def find_account(user_id: int, account_id: int, session: Session):
     if not account:
         return {}, 404
 
-    balance, incomes, expenses = get_balance(user_id, account_id, session)
-
-    response = jsonify(AccountResource(account).serialize(**{
-        "balance": balance,
-        "incomes": incomes,
-        "expenses": expenses
-    }))
-    return response
+    account_resource = get_account_financial_data(account, session)
+    return jsonify(account_resource)
 
 
 @database_operation(max_tries=3)
 def list_accounts(user_id: int, session: Session):
     accounts = []
     for account in list_a(user_id, session):
-        balance, incomes, expenses = get_balance(user_id, account.id, session)
-        account = AccountResource(account).serialize(**{
-            "balance": balance,
-            "incomes": incomes,
-            "expenses": expenses,
-        })
-        accounts.append(account)
+        account_resource = get_account_financial_data(account, session)
+        accounts.append(account_resource)
 
     return jsonify({"accounts": accounts})
+
+
+def get_account_financial_data(account: Account, session: Session) -> dict:
+    balance, incomes, expenses = get_balance(
+        user_id=account.user_id,
+        account_id=account.id,
+        period_type=None,
+        period_offset=None,
+        start_date=None,
+        end_date=None,
+        session=session
+    )
+
+    account = AccountResource(account).serialize(**{
+        "balance": balance,
+        "incomes": incomes,
+        "expenses": expenses,
+    })
+
+    return account
 
 
 @database_operation(max_tries=3)

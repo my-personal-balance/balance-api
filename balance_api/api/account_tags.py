@@ -1,3 +1,5 @@
+import uuid
+
 from flask import jsonify
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
@@ -34,7 +36,7 @@ class AccountTagResource(Resource):
         return resource
 
     @classmethod
-    def deserialize(cls, account_id: int, account_tag_data: dict, create=True) -> dict:
+    def deserialize(cls, account_id: uuid, account_tag_data: dict, create=True) -> dict:
         account_tag_resource = {}
 
         for field in cls.fields:
@@ -48,7 +50,7 @@ class AccountTagResource(Resource):
 
 
 @database_operation(max_tries=3)
-def find_account_tag(account_id: int, account_tag_id: int, session: Session):
+def find_account_tag(account_id: uuid, account_tag_id: int, session: Session):
     q = (
         session.query(AccountTag).where(AccountTag.account_id == account_id, AccountTag.id == account_tag_id)
     )
@@ -61,7 +63,7 @@ def find_account_tag(account_id: int, account_tag_id: int, session: Session):
 
 
 @database_operation(max_tries=3)
-def list_account_tags(user_id: int, account_id: int, session: Session):
+def list_account_tags(user_id: int, account_id: uuid, session: Session):
     q = (
         session.query(AccountTag).where(AccountTag.account_id == account_id).order_by(AccountTag.id)
     )

@@ -23,8 +23,8 @@ components:
       description: Unique Account ID
       required: true
       schema:
-        type: integer
-        format: int32
+        type: string
+        format: uuid
 
     TransactionId:
       in: path
@@ -41,8 +41,8 @@ components:
       description: User account id
       required: false
       schema:
-        type: integer
-        format: int32
+        type: string
+        format: uuid
 
     PeriodType:
       in: query
@@ -90,6 +90,7 @@ components:
       properties:
         id:
           type: integer
+          format: int32
           example: 1
           description: User id
         name:
@@ -114,7 +115,8 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
           example: 1
           description: account id
         alias:
@@ -124,6 +126,7 @@ components:
           description: The account alias
         user_id:
           type: integer
+          format: int32
           example: 1
           description: The user id
         type:

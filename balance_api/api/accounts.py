@@ -1,3 +1,5 @@
+import uuid
+
 from flask import jsonify
 from sqlalchemy.orm.session import Session
 
@@ -57,7 +59,7 @@ class AccountResource(Resource):
 
 
 @database_operation(max_tries=3)
-def find_account(user_id: int, account_id: int, session: Session):
+def find_account(user_id: int, account_id: uuid, session: Session):
     account = find_a(user_id, account_id, session)
     if not account:
         return {}, 404

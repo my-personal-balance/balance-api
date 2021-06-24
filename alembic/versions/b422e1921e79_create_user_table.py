@@ -28,6 +28,7 @@ def upgrade():
             User.__tablename__,
             Column("id", INTEGER, primary_key=True, autoincrement=True),
             Column("name", TEXT),
+            Column("email", TEXT),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),
         )

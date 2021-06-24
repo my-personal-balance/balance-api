@@ -1,6 +1,7 @@
-import enum
-from datetime import datetime, date
 import calendar
+import enum
+import uuid
+from datetime import datetime, date
 
 from sqlalchemy import (
     Column,
@@ -13,6 +14,7 @@ from sqlalchemy import (
     DateTime,
 )
 from sqlalchemy import func, case, between
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
@@ -48,7 +50,7 @@ class Transaction(Base):
     transaction_type = Column("type", Enum(TransactionType))
     amount = Column(FLOAT)
     account_id = Column(
-      INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
+      UUID(as_uuid=True), ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
     )
     description = Column(TEXT)
     account_tag_id = Column(
@@ -61,7 +63,7 @@ class Transaction(Base):
     account_tag = relationship(AccountTag)
 
 
-def find_transaction(user_id: int, account_id: int, transaction_id: int, session: Session):
+def find_transaction(user_id: int, account_id: uuid, transaction_id: int, session: Session):
     q = (
         session.query(Transaction).join(Account).join(User).filter(
             User.id == user_id,
@@ -77,7 +79,7 @@ def find_transaction(user_id: int, account_id: int, transaction_id: int, session
 
 def list_transactions(
         user_id: int,
-        account_id: int = None,
+        account_id: uuid = None,
         period_type: int = None,
         period_offset: int = None,
         start_date: int = None,
@@ -115,7 +117,7 @@ def get_date_rage(period_type: PeriodType, start_date: str, end_date: str):
 
 def get_balance(
     user_id: int,
-    account_id: int = None,
+    account_id: uuid = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: int = None,

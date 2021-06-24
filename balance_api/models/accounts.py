@@ -1,4 +1,5 @@
 import enum
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (
@@ -9,6 +10,7 @@ from sqlalchemy import (
     Enum,
     DateTime,
 )
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
@@ -25,7 +27,7 @@ class AccountType(enum.Enum):
 class Account(Base):
     __tablename__ = "accounts"
 
-    id = Column(INTEGER, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     alias = Column(TEXT)
     user_id = Column(
       INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
@@ -35,7 +37,7 @@ class Account(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
 
 
-def find_account(user_id: int, account_id: int, session: Session):
+def find_account(user_id: int, account_id: uuid, session: Session):
     q = (
         session.query(Account).where(Account.user_id == user_id, Account.id == account_id)
     )
@@ -47,7 +49,7 @@ def find_account(user_id: int, account_id: int, session: Session):
 
 def list_accounts(user_id: int, session: Session):
     q = (
-        session.query(Account).where(Account.user_id == user_id).order_by(Account.id)
+        session.query(Account).where(Account.user_id == user_id).order_by(Account.created_at)
     )
     return [account for account in q.all()]
 

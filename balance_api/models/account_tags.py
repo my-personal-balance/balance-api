@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
 )
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from balance_api.models import Base
@@ -19,7 +20,7 @@ class AccountTag(Base):
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     value = Column(TEXT)
     account_id = Column(
-      INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
+      UUID(as_uuid=True), ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
     )
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)

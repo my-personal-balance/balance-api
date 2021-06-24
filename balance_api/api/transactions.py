@@ -1,3 +1,5 @@
+import uuid
+
 from flask import jsonify
 from sqlalchemy.orm.session import Session
 
@@ -50,7 +52,7 @@ class TransactionResource(Resource):
         return resource
 
     @classmethod
-    def deserialize(cls, account_id: int, transaction_data: dict, create=True) -> dict:
+    def deserialize(cls, account_id: uuid, transaction_data: dict, create=True) -> dict:
         transaction_resource = {}
 
         for field in cls.fields:
@@ -64,7 +66,7 @@ class TransactionResource(Resource):
 
 
 @database_operation(max_tries=3)
-def find_transaction(user_id: int, account_id: int, transaction_id: int, session: Session):
+def find_transaction(user_id: int, account_id: uuid, transaction_id: int, session: Session):
     transaction = find_t(user_id, account_id, transaction_id, session)
     if not transaction:
         return {}, 404
@@ -75,7 +77,7 @@ def find_transaction(user_id: int, account_id: int, transaction_id: int, session
 @database_operation(max_tries=3)
 def list_transactions(
         user_id: int,
-        account_id: int = None,
+        account_id: uuid = None,
         period_type: int = None,
         period_offset: int = None,
         start_date: int = None,

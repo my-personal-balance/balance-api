@@ -7,6 +7,7 @@ Create Date: 2021-06-20 17:03:08.874443
 """
 from alembic import op
 from sqlalchemy import TEXT, Column, INTEGER, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine.reflection import Inspector
 
 from balance_api.models.account_tags import AccountTag
@@ -28,7 +29,7 @@ def upgrade():
             AccountTag.__tablename__,
             Column("id", INTEGER, primary_key=True, autoincrement=True),
             Column("value", TEXT),
-            Column("account_id", INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")),
+            Column("account_id", UUID(as_uuid=True), ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),
         )

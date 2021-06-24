@@ -1,6 +1,5 @@
 import enum
 import uuid
-from datetime import datetime
 
 from meza.io import read_csv, read_xls
 from sqlalchemy.exc import NoResultFound
@@ -8,8 +7,8 @@ from sqlalchemy.orm.session import Session
 
 from balance_api.connection.db import database_operation
 from balance_api.models.account_tags import AccountTag
-from balance_api.models.transactions import Transaction, TransactionType
-from balance_api.transactions.mappings import n26, openbank
+from balance_api.models.transactions import Transaction
+from balance_api.transactions.mappings import openbank
 
 
 class SourceFileType(enum.Enum):
@@ -17,7 +16,7 @@ class SourceFileType(enum.Enum):
     XLS = "xls"
 
 
-def transform_records(records, mapping: dict, account_id: int, session: Session):
+def transform_records(records, mapping: dict, account_id: uuid, session: Session):
 
     for r in records:
         tag_value = mapping.get('tag')(r)
@@ -34,7 +33,7 @@ def transform_records(records, mapping: dict, account_id: int, session: Session)
         )
 
 
-def find_or_create_account_tag(session: Session, account_id: int, tag_value: str):
+def find_or_create_account_tag(session: Session, account_id: uuid, tag_value: str):
     q = (
         session.query(
             AccountTag
@@ -57,7 +56,7 @@ def find_or_create_account_tag(session: Session, account_id: int, tag_value: str
 
 
 @database_operation(max_tries=3)
-def load_file(file_path: str, source_type: SourceFileType, mapping: dict, account_id: int, session: Session):
+def load_file(file_path: str, source_type: SourceFileType, mapping: dict, account_id: uuid, session: Session):
     records = None
     if source_type == SourceFileType.CSV:
         records = read_csv(file_path)
@@ -70,9 +69,3 @@ def load_file(file_path: str, source_type: SourceFileType, mapping: dict, accoun
             session.add(transaction)
 
         session.commit()
-
-
-# For running locally
-if __name__ == "__main__":
-    # load_file('/Users/julianovidal/Downloads/n26-csv-transactions.csv', SourceFileType.CSV, n26.mapping, 1)
-    load_file('/Users/julianovidal/Downloads/openbank.xlsx', SourceFileType.XLS, openbank.mapping, 6)

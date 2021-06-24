@@ -10,6 +10,7 @@ class UserResource(Resource):
     fields = [
         "id",
         "name",
+        "email",
     ]
 
     protected_fields = [
@@ -25,6 +26,7 @@ class UserResource(Resource):
             {
                 "id": user.id,
                 "name": user.name,
+                "email": user.email,
             }
         )
 
@@ -48,6 +50,7 @@ def me(session: Session):
     return jsonify(UserResource(user).serialize())
 
 
+@database_operation(max_tries=3)
 def create_user(session: Session, **user):
     user_resource = UserResource.deserialize(user["body"], create=True)
     new_user = User(**user_resource)

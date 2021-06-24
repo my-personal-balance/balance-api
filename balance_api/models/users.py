@@ -15,5 +15,6 @@ class User(Base):
 
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     name = Column(TEXT)
+    email = Column(TEXT)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)

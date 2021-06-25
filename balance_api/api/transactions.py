@@ -115,6 +115,7 @@ def list_transactions(
 def create_transaction(user_id: int, session: Session, **transaction):
     transaction_resource = TransactionResource.deserialize(transaction["body"], create=True)
     new_transaction = Transaction(**transaction_resource)
+    new_transaction.amount = abs(new_transaction.amount)
     session.add(new_transaction)
     session.commit()
 

@@ -123,11 +123,10 @@ def get_balance(
     end_date: int = None,
     session: Session = None
 ) -> (float, float, float):
-    income = case((Transaction.amount >= 0.0, Transaction.amount), else_=0.0)
-    expenses = case((Transaction.amount < 0.0, Transaction.amount), else_=0.0)
+    income = case((Transaction.transaction_type == TransactionType.INCOME, Transaction.amount), else_=0.0)
+    expenses = case((Transaction.transaction_type == TransactionType.EXPENSE, Transaction.amount), else_=0.0)
     q = (
         session.query(
-            func.sum(Transaction.amount),
             func.sum(income),
             func.sum(expenses),
         ).join(Account).join(User).filter(User.id == user_id)
@@ -140,8 +139,11 @@ def get_balance(
         q = q.filter(between(Transaction.date, start_date, end_date))
 
     result = q.one()
+
+    incomes = result[0] if result[0] else 0.0
+    expenses = result[1] if result[1] else 0.0
+    balance = incomes - expenses
+
     return (
-        round(result[0], 2) if result[0] else 0.0,
-        round(result[1], 2) if result[1] else 0.0,
-        round(result[2], 2) if result[2] else 0.0
+        round(balance, 2), round(incomes, 2), round(expenses, 2),
     )

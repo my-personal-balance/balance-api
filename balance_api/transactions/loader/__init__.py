@@ -29,7 +29,7 @@ def transform_records(records, mapping: dict, account_id: uuid, session: Session
         yield Transaction(
             date=mapping.get('date')(r),
             transaction_type=mapping.get('type')(r),
-            amount=amount,
+            amount=abs(amount),
             description=mapping.get('description')(r),
             account_id=account_id,
             account_tag=account_tag,

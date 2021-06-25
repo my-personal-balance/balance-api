@@ -117,7 +117,7 @@ components:
         id:
           type: string
           format: uuid
-          example: 1
+          example: "5cdd1623-3d0a-4a21-a6be-cd1463f566fb"
           description: account id
         alias:
           type: string
@@ -207,12 +207,9 @@ components:
       properties:
         id:
           type: string
+          format: uuid
           example: "c88e96f6-24ae-49cd-8d6a-fa4fa753e17f"
           description: transaction id
-        previous_transaction_id:
-          type: string
-          example: "1a574a51-5aea-4260-8014-0f4172972396"
-          description: previous transaction id
         date:
           type: string
           nullable: true
@@ -371,6 +368,25 @@ paths:
                 $ref: '#/components/schemas/AccountTags'
 
   /users/{user_id}/transactions:
+    post:
+      summary: Creates a transaction
+      operationId: balance_api.api.transactions.create_transaction
+      description: Creates a transaction
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        201:
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+
     get:
       summary: Retrieves the list of transactions for a user
       operationId: balance_api.api.transactions.list_transactions

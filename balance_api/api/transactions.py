@@ -18,7 +18,6 @@ from balance_api.models.transactions import (
 class TransactionResource(Resource):
     fields = [
         "id",
-        "previous_transaction_id",
         "date",
         "transaction_type",
         "amount",
@@ -39,20 +38,19 @@ class TransactionResource(Resource):
         resource.update(
             {
                 "id": transaction.id,
-                "previous_transaction_id": transaction.previous_transaction_id,
                 "date": transaction.date,
                 "transaction_type": transaction.transaction_type.name,
                 "amount": transaction.amount,
                 "account": AccountResource(transaction.account).serialize(),
                 "description": transaction.description,
-                "tag": AccountTagResource(transaction.account_tag).serialize(),
+                "tag": AccountTagResource(transaction.account_tag).serialize() if transaction.account_tag else None,
             }
         )
 
         return resource
 
     @classmethod
-    def deserialize(cls, account_id: uuid, transaction_data: dict, create=True) -> dict:
+    def deserialize(cls, transaction_data: dict, create=True) -> dict:
         transaction_resource = {}
 
         for field in cls.fields:
@@ -60,7 +58,8 @@ class TransactionResource(Resource):
         for field in cls.protected_fields:
             transaction_resource.pop(field, None)
 
-        transaction_resource["account_id"] = account_id
+        account = transaction_data.get("account", None)
+        transaction_resource["account_id"] = account.get("id", None) if account else None
 
         return transaction_resource
 
@@ -110,3 +109,13 @@ def list_transactions(
         "incomes": incomes,
         "expenses": expenses
     })
+
+
+@database_operation(max_tries=3)
+def create_transaction(user_id: int, session: Session, **transaction):
+    transaction_resource = TransactionResource.deserialize(transaction["body"], create=True)
+    new_transaction = Transaction(**transaction_resource)
+    session.add(new_transaction)
+    session.commit()
+
+    return jsonify(TransactionResource(new_transaction).serialize()), 201

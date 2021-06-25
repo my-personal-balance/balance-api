@@ -44,8 +44,7 @@ class PeriodType(enum.Enum):
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id = Column(TEXT, primary_key=True)
-    previous_transaction_id = Column(TEXT)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     date = Column(DATE)
     transaction_type = Column("type", Enum(TransactionType))
     amount = Column(FLOAT)

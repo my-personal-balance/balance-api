@@ -5,6 +5,8 @@ Revises: df76125d06a9
 Create Date: 2021-06-20 17:21:05.890349
 
 """
+import uuid
+
 from alembic import op
 from sqlalchemy import TEXT, Column, INTEGER, ForeignKey, Enum, DATE, FLOAT, DateTime
 from sqlalchemy.dialects.postgresql import UUID
@@ -27,8 +29,7 @@ def upgrade():
     if Transaction.__tablename__ not in tables:
         op.create_table(
             Transaction.__tablename__,
-            Column("id", TEXT, primary_key=True),
-            Column("previous_transaction_id", TEXT),
+            Column("id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
             Column("date", DATE),
             Column("type", Enum(TransactionType)),
             Column("amount", FLOAT),

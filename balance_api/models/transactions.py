@@ -26,12 +26,12 @@ from balance_api.models.users import User
 
 
 class TransactionType(enum.Enum):
-    EXPENSE = "expense"
-    INCOME = "income"
-    TRANSFER = "transafer"
-    REFUND = "refund"
-    INVESTMENT = "investment"
-    IOU = "iou"
+    EXPENSE = "EXPENSE"
+    INCOME = "INCOME"
+    TRANSFER = "TRANSFER"
+    REFUND = "REFUND"
+    INVESTMENT = "INVESTMENT"
+    IOU = "IOU"
 
 
 class PeriodType(enum.Enum):
@@ -55,8 +55,8 @@ class Transaction(Base):
     account_tag_id = Column(
         INTEGER, ForeignKey("account_tags.id", onupdate="CASCADE")
     )
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     account = relationship(Account)
     account_tag = relationship(AccountTag)
@@ -147,3 +147,15 @@ def get_balance(
     return (
         round(balance, 2), round(incomes, 2), round(expenses, 2),
     )
+
+
+def delete_transaction(user_id: int, transaction_id: int, session: Session):
+    q = (
+        session.query(Transaction).join(Account).join(User).where(
+            Transaction.id == transaction_id, User.id == user_id
+        )
+    )
+    transaction = q.one()
+    if transaction:
+        session.delete(transaction)
+        session.commit()

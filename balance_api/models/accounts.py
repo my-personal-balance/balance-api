@@ -32,9 +32,9 @@ class Account(Base):
     user_id = Column(
       INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    type = Column(Enum(AccountType))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    type = Column(Enum(AccountType), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 def find_account(user_id: int, account_id: uuid, session: Session):

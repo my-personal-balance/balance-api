@@ -406,19 +406,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Transactions'
 
-  /users/{user_id}/accounts/{account_id}/transactions/{transaction_id}:
-    get:
-      summary: Retrieves a specific transactions for a user account
-      operationId: balance_api.api.transactions.find_transaction
-      description: Retrieves a specific transactions for a user account
+  /users/{user_id}/transactions/{transaction_id}:
+    delete:
+      summary: Deletes a single transaction
+      operationId: balance_api.api.transactions.delete_transaction
+      description: Deletes a single transaction for a given transaction_id
       parameters:
         - $ref: '#/components/parameters/UserId'
-        - $ref: '#/components/parameters/AccountId'
         - $ref: '#/components/parameters/TransactionId'
       responses:
-        200:
-          description: OK
+        204:
+          description: NO CONTENT
+
+
+  /users/{user_id}/upload:
+    post:
+      summary: Uploads a file with several transactions
+      operationId: balance_api.api.transactions.upload_transaction
+      description: Uploads a file with several transactions
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                account_id:
+                  type: string
+                userId:
+                  type: integer
+                file:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: CREATED
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Transactions'
+                $ref: '#/components/schemas/Transaction'

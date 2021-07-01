@@ -1,3 +1,4 @@
+import tempfile
 import uuid
 
 from flask import jsonify
@@ -9,10 +10,12 @@ from balance_api.api.accounts import AccountResource
 from balance_api.connection.db import database_operation
 from balance_api.models.transactions import (
     Transaction,
-    find_transaction as find_t,
+    delete_transaction as delete_t,
     list_transactions as list_t,
     get_balance,
 )
+from balance_api.transactions.loader import process_transactions_file, SourceFileType
+from balance_api.transactions.mappings import n26
 
 
 class TransactionResource(Resource):
@@ -65,15 +68,6 @@ class TransactionResource(Resource):
 
 
 @database_operation(max_tries=3)
-def find_transaction(user_id: int, account_id: uuid, transaction_id: int, session: Session):
-    transaction = find_t(user_id, account_id, transaction_id, session)
-    if not transaction:
-        return {}, 404
-
-    return jsonify(TransactionResource(transaction).serialize())
-
-
-@database_operation(max_tries=3)
 def list_transactions(
         user_id: int,
         account_id: uuid = None,
@@ -120,3 +114,25 @@ def create_transaction(user_id: int, session: Session, **transaction):
     session.commit()
 
     return jsonify(TransactionResource(new_transaction).serialize()), 201
+
+
+@database_operation(max_tries=3)
+def delete_transaction(user_id: int, transaction_id: uuid, session: Session):
+    delete_t(user_id, transaction_id, session)
+    return 204
+
+
+@database_operation(max_tries=3)
+def upload_transaction(user_id: int, session: Session, **transaction):
+    if "body" in transaction:
+        account_id = transaction["body"].get("account_id", None)
+
+    if "file" in transaction:
+        file = transaction["file"]
+
+    if account_id and file:
+        with tempfile.NamedTemporaryFile() as f:
+            file.save(f.name)
+            process_transactions_file(f, SourceFileType.CSV, n26.mapping, account_id, session)
+
+    return jsonify({"success": True}), 201

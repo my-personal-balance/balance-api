@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     Column,
-    INTEGER,
+    FLOAT,
     TEXT,
     DateTime,
 )
@@ -10,11 +10,11 @@ from sqlalchemy import (
 from balance_api.models import Base
 
 
-class User(Base):
-    __tablename__ = "users"
+class Asset(Base):
+    __tablename__ = "assets"
 
-    id = Column(INTEGER, primary_key=True, autoincrement=True)
-    name = Column(TEXT)
-    email = Column(TEXT)
+    isin = Column(TEXT, primary_key=True)
+    price = Column(FLOAT)
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -82,6 +82,14 @@ components:
         type: string
         format: date-time
 
+    Keywords:
+      in: query
+      name: keywords
+      description: Keywords
+      required: false
+      schema:
+        type: string
+
   schemas:
     User:
       type: object
@@ -149,13 +157,13 @@ components:
           nullable: true
           format: date-time
           example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was created
+          description: The timestamp when the account was created
         updated_at:
           type: string
           nullable: true
           format: date-time
           example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was last modified/updated
+          description: The timestamp when the account was last modified/updated
 
     Accounts:
       type: object
@@ -186,13 +194,13 @@ components:
           nullable: true
           format: date-time
           example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was created
+          description: The timestamp when the tag was created
         updated_at:
           type: string
           nullable: true
           format: date-time
           example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was last modified/updated
+          description: The timestamp when the tag was last modified/updated
 
     AccountTags:
       type: object
@@ -246,13 +254,13 @@ components:
           nullable: true
           format: date-time
           example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was created
+          description: The timestamp when the transaction was created
         updated_at:
           type: string
           nullable: true
           format: date-time
           example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was last modified/updated
+          description: The timestamp when the transaction was last modified/updated
 
     Transactions:
       type: object
@@ -266,6 +274,44 @@ components:
           format: float
           example: 3.15
           description: Transaction sum
+
+    Asset:
+      type: object
+      properties:
+        isin:
+          type: string
+          example: "DE0005933931"
+          description: Asset ISIN
+        description:
+          type: string
+          nullable: true
+          example: 'ISHARES CORE DAX UCITS ETF (DE)'
+          description: Asset description
+        price:
+          type: number
+          format: float
+          example: 3.15
+          description: Price this assets is being traded.
+        created_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the asset was created
+        updated_at:
+          type: string
+          nullable: true
+          format: date-time
+          example: '2019-06-26T11:23:25.865677'
+          description: The timestamp when the asset was last modified/updated
+
+    Assets:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Asset'
 
 paths:
 
@@ -446,3 +492,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transaction'
+
+  /assets:
+    get:
+      summary: Searches for assets based on keywords
+      operationId: balance_api.api.assets.search_assets
+      description: Searches for assets based on keywords
+      parameters:
+        - $ref: '#/components/parameters/Keywords'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assets'

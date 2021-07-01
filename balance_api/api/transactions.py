@@ -10,6 +10,7 @@ from balance_api.api.accounts import AccountResource
 from balance_api.connection.db import database_operation
 from balance_api.models.transactions import (
     Transaction,
+    create_transaction as create_t,
     delete_transaction as delete_t,
     list_transactions as list_t,
     get_balance,
@@ -108,11 +109,7 @@ def list_transactions(
 @database_operation(max_tries=3)
 def create_transaction(user_id: int, session: Session, **transaction):
     transaction_resource = TransactionResource.deserialize(transaction["body"], create=True)
-    new_transaction = Transaction(**transaction_resource)
-    new_transaction.amount = abs(new_transaction.amount)
-    session.add(new_transaction)
-    session.commit()
-
+    new_transaction = create_t(transaction_resource, session)
     return jsonify(TransactionResource(new_transaction).serialize()), 201
 
 

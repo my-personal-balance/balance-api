@@ -48,10 +48,9 @@ def find_account(user_id: int, account_id: uuid, session: Session):
 
 
 def list_accounts(user_id: int, session: Session):
-    q = (
+    return (
         session.query(Account).where(Account.user_id == user_id).order_by(Account.created_at)
-    )
-    return [account for account in q.all()]
+    ).all()
 
 
 def create_account(account_resource, session: Session):

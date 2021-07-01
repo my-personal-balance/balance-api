@@ -62,6 +62,14 @@ class Transaction(Base):
     account_tag = relationship(AccountTag)
 
 
+def create_transaction(transaction_resource, session: Session):
+    new_transaction = Transaction(**transaction_resource)
+    new_transaction.amount = abs(new_transaction.amount)
+    session.add(new_transaction)
+    session.commit()
+    return new_transaction
+
+
 def find_transaction(user_id: int, account_id: uuid, transaction_id: int, session: Session):
     q = (
         session.query(Transaction).join(Account).join(User).filter(

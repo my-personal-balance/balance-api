@@ -29,6 +29,7 @@ def upgrade():
         op.create_table(
             Asset.__tablename__,
             Column("isin", TEXT, primary_key=True),
+            Column("description", TEXT),
             Column("price", FLOAT),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),

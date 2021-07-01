@@ -6,7 +6,8 @@ from sqlalchemy import (
     TEXT,
     DateTime,
 )
-
+from sqlalchemy import or_, func
+from sqlalchemy.orm.session import Session
 from balance_api.models import Base
 
 
@@ -14,7 +15,20 @@ class Asset(Base):
     __tablename__ = "assets"
 
     isin = Column(TEXT, primary_key=True)
+    description = Column(TEXT)
     price = Column(FLOAT)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+def search_assets(keyword: str, session: Session):
+    q = (
+        session.query(Asset).filter(
+            or_(
+                Asset.isin.like(f"%{keyword}%"),
+                Asset.description.like(f"%{keyword}%")
+            )
+        )
+    )
+    return q.all()

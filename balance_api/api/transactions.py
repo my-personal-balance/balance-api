@@ -1,4 +1,3 @@
-import tempfile
 import uuid
 
 from flask import jsonify
@@ -8,15 +7,19 @@ from balance_api.api import Resource
 from balance_api.api.account_tags import AccountTagResource
 from balance_api.api.accounts import AccountResource
 from balance_api.connection.db import database_operation
+from balance_api.exceptions import ResourceBadRequest
+from balance_api.models.transaction_asset import (
+    create_transaction_asset_with_isin
+)
 from balance_api.models.transactions import (
     Transaction,
+    TransactionType,
     create_transaction as create_t,
     delete_transaction as delete_t,
     list_transactions as list_t,
     get_balance,
 )
-from balance_api.transactions.loader import process_transactions_file, SourceFileType
-from balance_api.transactions.mappings import n26
+from balance_api.transactions.loader import TransactionFileLoader
 
 
 class TransactionResource(Resource):
@@ -108,8 +111,21 @@ def list_transactions(
 
 @database_operation(max_tries=3)
 def create_transaction(user_id: int, session: Session, **transaction):
-    transaction_resource = TransactionResource.deserialize(transaction["body"], create=True)
+    transaction_data = transaction["body"]
+    transaction_resource = TransactionResource.deserialize(transaction_data, create=True)
     new_transaction = create_t(transaction_resource, session)
+
+    if new_transaction.transaction_type == TransactionType.INVESTMENT:
+        if "asset" in transaction_data:
+            isin = transaction_data.get("asset").get("isin", None)
+            create_transaction_asset_with_isin(
+                new_transaction,
+                isin=isin,
+                session=session
+            )
+        else:
+            raise ResourceBadRequest(detail="No asset info given for an Investment transaction.")
+
     return jsonify(TransactionResource(new_transaction).serialize()), 201
 
 
@@ -124,12 +140,20 @@ def upload_transaction(user_id: int, session: Session, **transaction):
     if "body" in transaction:
         account_id = transaction["body"].get("account_id", None)
 
-    if "file" in transaction:
-        file = transaction["file"]
+    if "file" not in transaction:
+        raise ResourceBadRequest(detail="Transaction file data not received")
 
-    if account_id and file:
-        with tempfile.NamedTemporaryFile() as f:
-            file.save(f.name)
-            process_transactions_file(f, SourceFileType.CSV, n26.mapping, account_id, session)
+    if account_id:
+        file = transaction["file"]
+        transaction_file_loader = TransactionFileLoader(
+            file=file,
+            account_id=account_id,
+            session=session,
+        )
+
+    try:
+        transaction_file_loader.process()
+    except Exception as ex:
+        raise ResourceBadRequest(detail="Error while loading the transaction file")
 
     return jsonify({"success": True}), 201

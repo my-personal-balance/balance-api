@@ -249,6 +249,8 @@ components:
           description: Transaction description
         tag:
           $ref: '#/components/schemas/AccountTag'
+        asset:
+          $ref: '#/components/schemas/AccountTag'
         created_at:
           type: string
           nullable: true

@@ -13,6 +13,7 @@ class AssetResource(Resource):
     fields = [
         "isin",
         "description",
+        "currency",
         "price",
     ]
 
@@ -29,6 +30,7 @@ class AssetResource(Resource):
             {
                 "isin": asset.isin,
                 "description": asset.description,
+                "currency": asset.currency,
                 "price": asset.price,
             }
         )

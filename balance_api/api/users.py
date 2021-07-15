@@ -1,4 +1,5 @@
 from flask import jsonify
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
 from balance_api.api import Resource
@@ -45,9 +46,14 @@ class UserResource(Resource):
 
 
 @database_operation(max_tries=3)
-def me(session: Session):
-    user = session.query(User).first()
-    return jsonify(UserResource(user).serialize())
+def me(session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
+    q = session.query(User).filter(User.id == user_id)
+    try:
+        user = q.one()
+        return jsonify(UserResource(user).serialize())
+    except NoResultFound:
+        return None
 
 
 @database_operation(max_tries=3)

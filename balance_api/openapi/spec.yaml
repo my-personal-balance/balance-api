@@ -7,16 +7,14 @@ info:
   version: 1.0.0
 
 components:
-  parameters:
-    UserId:
-      in: path
-      name: user_id
-      description: Unique User ID
-      required: true
-      schema:
-        type: integer
-        format: int32
+  securitySchemes:
+    oauth2:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: balance_api.api.security.decode_token
 
+  parameters:
     AccountId:
       in: path
       name: account_id
@@ -91,6 +89,21 @@ components:
         type: string
 
   schemas:
+    Login:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          example: 'john@doe.com'
+          description: User email
+        password:
+          type: string
+          example: 'xyz'
+          description: The user password
+
     User:
       type: object
       required:
@@ -317,6 +330,24 @@ components:
 
 paths:
 
+  /oauth2/token:
+    post:
+      summary: User sign-in
+      operationId: balance_api.api.security.oauth.token
+      description: User sign-in
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
   /users:
     post:
       summary: Creates an user
@@ -337,6 +368,9 @@ paths:
 
     get:
       summary: Retrieves an user
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.users.me
       description: Retrieves an user
       responses:
@@ -348,13 +382,14 @@ paths:
                 $ref: '#/components/schemas/User'
 
 
-  /users/{user_id}/accounts:
+  /accounts:
     post:
       summary: Creates an user account
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.accounts.create_account
       description: Creates an user account
-      parameters:
-        - $ref: '#/components/parameters/UserId'
       requestBody:
         content:
           application/json:
@@ -370,10 +405,11 @@ paths:
 
     get:
       summary: Lists all user accounts
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.accounts.list_accounts
       description: Lists all user accounts
-      parameters:
-        - $ref: '#/components/parameters/UserId'
       responses:
         200:
           description: OK
@@ -382,13 +418,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Accounts'
 
-  /users/{user_id}/accounts/{account_id}:
+  /accounts/{account_id}:
     get:
       summary: Retrieves an user account
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.accounts.find_account
       description: Retrieves an user account
       parameters:
-        - $ref: '#/components/parameters/UserId'
         - $ref: '#/components/parameters/AccountId'
       responses:
         200:
@@ -399,13 +437,15 @@ paths:
                 $ref: '#/components/schemas/Account'
 
 
-  /users/{user_id}/accounts/{account_id}/tags:
+  /accounts/{account_id}/tags:
     get:
       summary: Retrieves the list of account tags for a user account
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.account_tags.list_account_tags
       description: Retrieves the list of account tags for a user account
       parameters:
-        - $ref: '#/components/parameters/UserId'
         - $ref: '#/components/parameters/AccountId'
       responses:
         200:
@@ -415,13 +455,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountTags'
 
-  /users/{user_id}/transactions:
+  /transactions:
     post:
       summary: Creates a transaction
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.transactions.create_transaction
       description: Creates a transaction
-      parameters:
-        - $ref: '#/components/parameters/UserId'
       requestBody:
         content:
           application/json:
@@ -437,10 +478,12 @@ paths:
 
     get:
       summary: Retrieves the list of transactions for a user
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.transactions.list_transactions
       description: Retrieves the list of transactions for a user
       parameters:
-        - $ref: '#/components/parameters/UserId'
         - $ref: '#/components/parameters/AccountIdQuery'
         - $ref: '#/components/parameters/PeriodType'
         - $ref: '#/components/parameters/PeriodOffset'
@@ -454,26 +497,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/Transactions'
 
-  /users/{user_id}/transactions/{transaction_id}:
+  /transactions/{transaction_id}:
     delete:
       summary: Deletes a single transaction
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.transactions.delete_transaction
       description: Deletes a single transaction for a given transaction_id
       parameters:
-        - $ref: '#/components/parameters/UserId'
         - $ref: '#/components/parameters/TransactionId'
       responses:
         204:
           description: NO CONTENT
 
 
-  /users/{user_id}/upload:
+  /upload:
     post:
       summary: Uploads a file with several transactions
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.transactions.upload_transaction
       description: Uploads a file with several transactions
-      parameters:
-        - $ref: '#/components/parameters/UserId'
       requestBody:
         content:
           multipart/form-data:
@@ -498,6 +544,9 @@ paths:
   /assets:
     get:
       summary: Searches for assets based on keywords
+      security:
+        - oauth2:
+            - uid
       operationId: balance_api.api.assets.search_assets
       description: Searches for assets based on keywords
       parameters:

@@ -45,7 +45,7 @@ class AccountResource(Resource):
         return resource
 
     @classmethod
-    def deserialize(cls, user_id: int, account_data: dict, create=True) -> dict:
+    def deserialize(cls, account_data: dict, create=True) -> dict:
         account_resource = {}
 
         for field in cls.fields:
@@ -53,13 +53,12 @@ class AccountResource(Resource):
         for field in cls.protected_fields:
             account_resource.pop(field, None)
 
-        account_resource["user_id"] = user_id
-
         return account_resource
 
 
 @database_operation(max_tries=3)
-def find_account(user_id: int, account_id: uuid, session: Session):
+def find_account(account_id: uuid, session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
     account = find_a(user_id, account_id, session)
     if not account:
         return {}, 404
@@ -69,7 +68,8 @@ def find_account(user_id: int, account_id: uuid, session: Session):
 
 
 @database_operation(max_tries=3)
-def list_accounts(user_id: int, session: Session):
+def list_accounts(session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
     accounts = []
     for account in list_a(user_id, session):
         account_resource = get_account_financial_data(account, session)
@@ -99,7 +99,9 @@ def get_account_financial_data(account: Account, session: Session) -> dict:
 
 
 @database_operation(max_tries=3)
-def create_account(user_id: int, session: Session, **account):
-    account_resource = AccountResource.deserialize(user_id, account["body"], create=True)
+def create_account(session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
+    account_resource = AccountResource.deserialize(kwargs["body"], create=True)
+    account_resource["user_id"] = user_id
     new_account = create_a(account_resource, session)
     return jsonify(AccountResource(new_account).serialize()), 201

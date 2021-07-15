@@ -6,6 +6,8 @@ from sqlalchemy import (
     TEXT,
     DateTime,
 )
+from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm.session import Session
 
 from balance_api.models import Base
 
@@ -18,3 +20,13 @@ class User(Base):
     email = Column(TEXT)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+def authenticate(email: str, password: str, session: Session):
+    q = (
+        session.query(User).filter(User.email == email)
+    )
+    try:
+        return q.one()
+    except NoResultFound:
+        return None

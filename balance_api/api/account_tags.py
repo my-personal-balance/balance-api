@@ -7,6 +7,7 @@ from sqlalchemy.orm.session import Session
 from balance_api.api import Resource
 from balance_api.connection.db import database_operation
 from balance_api.models.account_tags import AccountTag
+from balance_api.models.accounts import Account
 
 
 class AccountTagResource(Resource):
@@ -36,7 +37,7 @@ class AccountTagResource(Resource):
         return resource
 
     @classmethod
-    def deserialize(cls, account_id: uuid, account_tag_data: dict, create=True) -> dict:
+    def deserialize(cls, account_tag_data: dict, create=True) -> dict:
         account_tag_resource = {}
 
         for field in cls.fields:
@@ -44,15 +45,18 @@ class AccountTagResource(Resource):
         for field in cls.protected_fields:
             account_tag_resource.pop(field, None)
 
-        account_tag_resource["account_id"] = account_id
-
         return account_tag_resource
 
 
 @database_operation(max_tries=3)
-def find_account_tag(account_id: uuid, account_tag_id: int, session: Session):
+def find_account_tag(account_id: uuid, account_tag_id: int, session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
     q = (
-        session.query(AccountTag).where(AccountTag.account_id == account_id, AccountTag.id == account_tag_id)
+        session.query(AccountTag).where(
+            AccountTag.account.user_id == user_id,
+            AccountTag.account_id == account_id,
+            AccountTag.id == account_tag_id
+        )
     )
     try:
         account_tag = q.one()
@@ -63,12 +67,15 @@ def find_account_tag(account_id: uuid, account_tag_id: int, session: Session):
 
 
 @database_operation(max_tries=3)
-def list_account_tags(user_id: int, account_id: uuid, session: Session):
+def list_account_tags(account_id: uuid, session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
     q = (
-        session.query(AccountTag).where(AccountTag.account_id == account_id).order_by(AccountTag.id)
+        session.query(AccountTag).join(Account).where(
+            Account.user_id == user_id,
+            AccountTag.account_id == account_id
+        ).order_by(AccountTag.id)
     )
     account_tags = [
         AccountTagResource(account_tag).serialize() for account_tag in q.all()
     ]
     return jsonify({"items": account_tags})
-

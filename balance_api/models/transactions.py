@@ -72,8 +72,8 @@ def create_transaction(transaction_resource, session: Session):
 
 def find_transaction(user_id: int, account_id: uuid, transaction_id: int, session: Session):
     q = (
-        session.query(Transaction).join(Account).join(User).filter(
-            User.id == user_id,
+        session.query(Transaction).join(Account).filter(
+            Account.user_id == user_id,
             Transaction.account_id == account_id,
             Transaction.id == transaction_id
         )
@@ -159,8 +159,8 @@ def get_balance(
 
 def delete_transaction(user_id: int, transaction_id: int, session: Session):
     q = (
-        session.query(Transaction).join(Account).join(User).where(
-            Transaction.id == transaction_id, User.id == user_id
+        session.query(Transaction).join(Account).where(
+            Transaction.id == transaction_id, Account.user_id == user_id
         )
     )
     transaction = q.one()

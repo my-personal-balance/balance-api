@@ -11,7 +11,7 @@ from sqlalchemy import (
     DateTime,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, DataError
 from sqlalchemy.orm.session import Session
 
 from balance_api.models import Base
@@ -45,6 +45,8 @@ def find_account(user_id: int, account_id: uuid, session: Session):
         return q.one()
     except NoResultFound:
         return None
+    except DataError:
+        return None
 
 
 def list_accounts(user_id: int, session: Session):
@@ -58,4 +60,3 @@ def create_account(account_resource, session: Session):
     session.add(new_account)
     session.commit()
     return new_account
-

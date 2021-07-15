@@ -1,9 +1,11 @@
 alembic
 backoff
 connexion[swagger-ui]
+flask
 flask-compress
 flask-cors
 flask-sqlalchemy
 meza
 psycopg2-binary
+python-jose[cryptography]
 sqlalchemy

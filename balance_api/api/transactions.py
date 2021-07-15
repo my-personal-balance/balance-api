@@ -73,16 +73,17 @@ class TransactionResource(Resource):
 
 @database_operation(max_tries=3)
 def list_transactions(
-        user_id: int,
         account_id: uuid = None,
         period_type: int = None,
         period_offset: int = None,
         start_date: int = None,
         end_date: int = None,
-        session: Session = None):
-
+        session: Session = None,
+        **kwargs,
+):
+    user_id = dict(kwargs)["user"]
     transactions = list_t(
-        user_id,
+        int(user_id),
         account_id,
         period_type,
         period_offset,
@@ -92,7 +93,7 @@ def list_transactions(
     )
 
     balance, incomes, expenses = get_balance(
-        user_id,
+        int(user_id),
         account_id,
         period_type,
         period_offset,
@@ -110,7 +111,7 @@ def list_transactions(
 
 
 @database_operation(max_tries=3)
-def create_transaction(user_id: int, session: Session, **transaction):
+def create_transaction(session: Session, **transaction):
     transaction_data = transaction["body"]
     transaction_resource = TransactionResource.deserialize(transaction_data, create=True)
     new_transaction = create_t(transaction_resource, session)
@@ -130,15 +131,17 @@ def create_transaction(user_id: int, session: Session, **transaction):
 
 
 @database_operation(max_tries=3)
-def delete_transaction(user_id: int, transaction_id: uuid, session: Session):
+def delete_transaction(transaction_id: uuid, session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
     delete_t(user_id, transaction_id, session)
     return 204
 
 
 @database_operation(max_tries=3)
-def upload_transaction(user_id: int, session: Session, **transaction):
+def upload_transaction(session: Session, **transaction):
+    account_id = None
     if "body" in transaction:
-        account_id = transaction["body"].get("account_id", None)
+        account_id = transaction["body"].get("account_id")
 
     if "file" not in transaction:
         raise ResourceBadRequest(detail="Transaction file data not received")
@@ -151,9 +154,11 @@ def upload_transaction(user_id: int, session: Session, **transaction):
             session=session,
         )
 
-    try:
-        transaction_file_loader.process()
-    except Exception as ex:
-        raise ResourceBadRequest(detail="Error while loading the transaction file")
+        try:
+            transaction_file_loader.process()
+        except Exception:
+            raise ResourceBadRequest(detail="Error while loading the transaction file")
 
-    return jsonify({"success": True}), 201
+        return jsonify({"success": True}), 201
+    else:
+        raise ResourceBadRequest(detail="No account id information found in the request")

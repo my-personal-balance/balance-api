@@ -17,7 +17,7 @@ JWT_SECRET = {
     "alg": "HS256",
     "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"
 }
-JWT_LIFETIME_SECONDS = 86400
+JWT_LIFETIME_SECONDS = 3600
 JWT_ALGORITHM = Algorithms.HS256
 
 

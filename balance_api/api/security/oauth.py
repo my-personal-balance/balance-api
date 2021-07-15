@@ -39,6 +39,6 @@ def token(session: Session, **auth):
 
         return jsonify(response), 200
     else:
-        return 401
+        return jsonify({}), 401
 
 

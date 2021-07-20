@@ -31,6 +31,8 @@ class TransactionResource(Resource):
         "account_id",
         "description",
         "account_tag_id",
+        "prev_transaction_id",
+        "balance",
     ]
 
     protected_fields = [
@@ -51,6 +53,8 @@ class TransactionResource(Resource):
                 "account": AccountResource(transaction.account).serialize(),
                 "description": transaction.description,
                 "tag": AccountTagResource(transaction.account_tag).serialize() if transaction.account_tag else None,
+                "prev_transaction_id": transaction.prev_transaction_id,
+                "balance": transaction.balance,
             }
         )
 
@@ -64,9 +68,6 @@ class TransactionResource(Resource):
             transaction_resource[field] = transaction_data.get(field, None)
         for field in cls.protected_fields:
             transaction_resource.pop(field, None)
-
-        account = transaction_data.get("account", None)
-        transaction_resource["account_id"] = account.get("id", None) if account else None
 
         return transaction_resource
 
@@ -138,9 +139,12 @@ def delete_transaction(transaction_id: uuid, session: Session, **kwargs):
 
 
 @database_operation(max_tries=3)
-def upload_transaction(session: Session, **transaction):
+def upload_transaction(session: Session, **kwargs):
+    transaction = dict(kwargs)
+    user_id = transaction["user"]
+
     account_id = None
-    if "body" in transaction:
+    if "body" in kwargs:
         account_id = transaction["body"].get("account_id")
 
     if "file" not in transaction:
@@ -150,6 +154,7 @@ def upload_transaction(session: Session, **transaction):
         file = transaction["file"]
         transaction_file_loader = TransactionFileLoader(
             file=file,
+            user_id=user_id,
             account_id=account_id,
             session=session,
         )

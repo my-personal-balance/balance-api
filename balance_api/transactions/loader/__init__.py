@@ -7,7 +7,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 
 from balance_api.models.account_tags import AccountTag
-from balance_api.models.transactions import Transaction
+from balance_api.models.transactions import Transaction, update_transaction_list
 from balance_api.transactions.mappings import (
     n26,
     openbank
@@ -23,8 +23,9 @@ class SourceFileType(enum.Enum):
 
 class TransactionFileLoader:
 
-    def __init__(self, file: FileStorage, account_id: uuid, session: Session):
+    def __init__(self, file: FileStorage, user_id: int, account_id: uuid, session: Session):
         self.file = file
+        self.user_id = user_id
         self.account_id = account_id
         self.session = session
         self.source_file_type = SourceFileType(file.content_type)
@@ -58,6 +59,7 @@ class TransactionFileLoader:
                 description=mapping.get('description')(record),
                 account_id=self.account_id,
                 account_tag=account_tag,
+                balance=0.0,
             )
 
     def __find_or_create_account_tag(self, tag_value: str):
@@ -92,7 +94,11 @@ class TransactionFileLoader:
                     self.session.add(transaction)
 
                 self.session.commit()
+
+                update_transaction_list(self.user_id, self.account_id, self.session)
             else:
                 raise LoadTransactionFileException(
                     detail="Error while loading transaction file"
                 )
+
+

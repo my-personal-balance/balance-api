@@ -36,6 +36,8 @@ def upgrade():
             Column("account_id", UUID(as_uuid=True), ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")),
             Column("description", TEXT),
             Column("account_tag_id", INTEGER, ForeignKey("account_tags.id", onupdate="CASCADE")),
+            Column("prev_transaction_id", UUID(as_uuid=True)),
+            Column("balance", FLOAT, nullable=False),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),
         )

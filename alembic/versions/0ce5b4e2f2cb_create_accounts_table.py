@@ -5,11 +5,9 @@ Revises: b422e1921e79
 Create Date: 2021-06-20 16:28:15.958831
 
 """
-import uuid
 
 from alembic import op
 from sqlalchemy import TEXT, Column, INTEGER, ForeignKey, Enum, DateTime
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine.reflection import Inspector
 
 from balance_api.models.accounts import Account, AccountType
@@ -29,7 +27,7 @@ def upgrade():
     if Account.__tablename__ not in tables:
         op.create_table(
             Account.__tablename__,
-            Column("id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
+            Column("id", INTEGER, primary_key=True, autoincrement=True),
             Column("alias", TEXT),
             Column("user_id", INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")),
             Column("type", Enum(AccountType), nullable=False),

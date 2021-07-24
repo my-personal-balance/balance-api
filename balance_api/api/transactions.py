@@ -1,5 +1,3 @@
-import uuid
-
 from flask import jsonify
 from sqlalchemy.orm.session import Session
 
@@ -31,8 +29,6 @@ class TransactionResource(Resource):
         "account_id",
         "description",
         "account_tag_id",
-        "prev_transaction_id",
-        "balance",
     ]
 
     protected_fields = [
@@ -53,8 +49,6 @@ class TransactionResource(Resource):
                 "account": AccountResource(transaction.account).serialize(),
                 "description": transaction.description,
                 "tag": AccountTagResource(transaction.account_tag).serialize() if transaction.account_tag else None,
-                "prev_transaction_id": transaction.prev_transaction_id,
-                "balance": transaction.balance,
             }
         )
 
@@ -74,7 +68,7 @@ class TransactionResource(Resource):
 
 @database_operation(max_tries=3)
 def list_transactions(
-        account_id: uuid = None,
+        account_id: int = None,
         period_type: int = None,
         period_offset: int = None,
         start_date: int = None,
@@ -103,12 +97,16 @@ def list_transactions(
         session
     )
 
-    return jsonify({
+    response = jsonify({
         "transactions": [TransactionResource(transaction).serialize() for transaction in transactions],
         "balance": balance,
         "incomes": incomes,
         "expenses": expenses
     })
+
+    session.close()
+
+    return response
 
 
 @database_operation(max_tries=3)
@@ -132,7 +130,7 @@ def create_transaction(session: Session, **transaction):
 
 
 @database_operation(max_tries=3)
-def delete_transaction(transaction_id: uuid, session: Session, **kwargs):
+def delete_transaction(transaction_id: int, session: Session, **kwargs):
     user_id = dict(kwargs)["user"]
     delete_t(user_id, transaction_id, session)
     return 204
@@ -167,3 +165,5 @@ def upload_transaction(session: Session, **kwargs):
         return jsonify({"success": True}), 201
     else:
         raise ResourceBadRequest(detail="No account id information found in the request")
+
+

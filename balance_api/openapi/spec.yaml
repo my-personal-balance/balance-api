@@ -21,8 +21,8 @@ components:
       description: Unique Account ID
       required: true
       schema:
-        type: string
-        format: uuid
+        type: integer
+        format: int32
 
     TransactionId:
       in: path
@@ -30,8 +30,8 @@ components:
       description: Unique Transaction ID
       required: true
       schema:
-        type: string
-        format: uuid
+        type: integer
+        format: int32
 
     AccountIdQuery:
       in: query
@@ -39,8 +39,8 @@ components:
       description: User account id
       required: false
       schema:
-        type: string
-        format: uuid
+        type: integer
+        format: int32
 
     PeriodType:
       in: query
@@ -136,9 +136,9 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
-          example: "5cdd1623-3d0a-4a21-a6be-cd1463f566fb"
+          type: integer
+          format: int32
+          example: 5000
           description: account id
         alias:
           type: string
@@ -222,9 +222,9 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
-          example: "c88e96f6-24ae-49cd-8d6a-fa4fa753e17f"
+          type: integer
+          format: int32
+          example: 123
           description: transaction id
         date:
           type: string
@@ -259,11 +259,6 @@ components:
           $ref: '#/components/schemas/AccountTag'
         asset:
           $ref: '#/components/schemas/AccountTag'
-        balance:
-          type: number
-          format: float
-          example: 3.15
-          description: The account balance at at this transaction
         created_at:
           type: string
           nullable: true
@@ -551,6 +546,28 @@ paths:
       description: Searches for assets based on keywords
       parameters:
         - $ref: '#/components/parameters/Keywords'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assets'
+
+  /reports/balance:
+    get:
+      summary: Return the account(s) total balance
+      security:
+        - oauth2:
+            - uid
+      operationId: balance_api.api.reports.get_balance
+      description: Return the account(s) total balance
+      parameters:
+        - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/PeriodType'
+        - $ref: '#/components/parameters/PeriodOffset'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
       responses:
         200:
           description: OK

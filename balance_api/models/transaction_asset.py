@@ -6,8 +6,8 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
     PrimaryKeyConstraint,
+    INTEGER,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
 
@@ -24,7 +24,7 @@ class TransactionAsset(Base):
     )
 
     transaction_id = Column(
-        UUID(as_uuid=True), ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
+        INTEGER, ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
     )
     asset_isin = Column(
         TEXT, ForeignKey("assets.isin", onupdate="CASCADE", ondelete="CASCADE")

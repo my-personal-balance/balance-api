@@ -82,10 +82,6 @@ def get_account_financial_data(account: Account, session: Session) -> dict:
     balance, incomes, expenses = get_balance(
         user_id=account.user_id,
         account_id=account.id,
-        period_type=None,
-        period_offset=None,
-        start_date=None,
-        end_date=None,
         session=session
     )
 

@@ -6,8 +6,7 @@ Create Date: 2021-07-05 16:57:19.395615
 
 """
 from alembic import op
-from sqlalchemy import TEXT, Column, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import TEXT, Column, ForeignKey, DateTime, INTEGER
 from sqlalchemy.engine.reflection import Inspector
 
 from balance_api.models.transaction_asset import TransactionAsset
@@ -29,7 +28,7 @@ def upgrade():
             TransactionAsset.__tablename__,
             Column(
                 "transaction_id",
-                UUID(as_uuid=True),
+                INTEGER,
                 ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
             ),
             Column(

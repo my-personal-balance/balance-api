@@ -5,11 +5,9 @@ Revises: df76125d06a9
 Create Date: 2021-06-20 17:21:05.890349
 
 """
-import uuid
 
 from alembic import op
 from sqlalchemy import TEXT, Column, INTEGER, ForeignKey, Enum, DATE, FLOAT, DateTime
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine.reflection import Inspector
 
 from balance_api.models.transactions import Transaction, TransactionType
@@ -29,15 +27,13 @@ def upgrade():
     if Transaction.__tablename__ not in tables:
         op.create_table(
             Transaction.__tablename__,
-            Column("id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
+            Column("id", INTEGER, primary_key=True, autoincrement=True),
             Column("date", DATE),
             Column("type", Enum(TransactionType)),
             Column("amount", FLOAT),
-            Column("account_id", UUID(as_uuid=True), ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")),
+            Column("account_id", INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")),
             Column("description", TEXT),
             Column("account_tag_id", INTEGER, ForeignKey("account_tags.id", onupdate="CASCADE")),
-            Column("prev_transaction_id", UUID(as_uuid=True)),
-            Column("balance", FLOAT, nullable=False),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),
         )

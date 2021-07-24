@@ -1,6 +1,5 @@
 import calendar
 import enum
-import uuid
 from datetime import datetime, date, timedelta
 
 from sqlalchemy import (
@@ -14,7 +13,6 @@ from sqlalchemy import (
     DateTime,
 )
 from sqlalchemy import func, case, between
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
@@ -44,19 +42,17 @@ class PeriodType(enum.Enum):
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(INTEGER, primary_key=True, autoincrement=True)
     date = Column(DATE)
     transaction_type = Column("type", Enum(TransactionType))
     amount = Column(FLOAT)
     account_id = Column(
-      UUID(as_uuid=True), ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
+      INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
     )
     description = Column(TEXT)
     account_tag_id = Column(
         INTEGER, ForeignKey("account_tags.id", onupdate="CASCADE")
     )
-    prev_transaction_id = Column(UUID(as_uuid=True))
-    balance = Column(FLOAT, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -72,7 +68,7 @@ def create_transaction(transaction_resource, session: Session):
     return new_transaction
 
 
-def find_transaction(user_id: int, account_id: uuid, transaction_id: int, session: Session):
+def find_transaction(user_id: int, account_id: int, transaction_id: int, session: Session):
     q = (
         session.query(Transaction).join(Account).filter(
             Account.user_id == user_id,
@@ -88,7 +84,7 @@ def find_transaction(user_id: int, account_id: uuid, transaction_id: int, sessio
 
 def list_transactions(
         user_id: int,
-        account_id: uuid = None,
+        account_id: int = None,
         period_type: int = None,
         period_offset: int = None,
         start_date: str = None,
@@ -105,16 +101,12 @@ def list_transactions(
         start_date, end_date = get_date_rage(PeriodType(period_type), start_date, end_date)
         q = q.filter(between(Transaction.date, start_date, end_date))
 
-    q = q.order_by(Transaction.date.desc(), Transaction.balance.asc(),)
+    q = q.order_by(Transaction.date.desc())
 
-    if not account_id:
-        return [transaction for transaction in q.all()]
-    else:
-        return [transaction for transaction in q.all()]
+    return [transaction for transaction in q.all()]
 
 
-def get_date_rage(period_type: PeriodType, start_date: str, end_date: str):
-    # if PeriodType(period_type) == PeriodType.CUSTOM:
+def get_date_rage(period_type: PeriodType, start_date: str, end_date: str) -> (date, date):
     if PeriodType(period_type) == PeriodType.CURRENT_MONTH:
         today = date.today()
         month_range = calendar.monthrange(today.year, today.month)
@@ -124,13 +116,16 @@ def get_date_rage(period_type: PeriodType, start_date: str, end_date: str):
         first = date.today().replace(day=1)
         end_date = first - timedelta(days=1)
         start_date = end_date.replace(day=1)
+    elif PeriodType(period_type) == PeriodType.CUSTOM:
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
     return start_date, end_date
 
 
 def get_balance(
     user_id: int,
-    account_id: uuid = None,
+    account_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: str = None,
@@ -166,84 +161,68 @@ def get_balance(
 def delete_transaction(user_id: int, transaction_id: int, session: Session):
     q = (
         session.query(Transaction).join(Account).where(
-            Transaction.id == transaction_id, Account.user_id == user_id
+            Transaction.id == transaction_id,
+            Account.user_id == user_id
         )
     )
     transaction = q.one()
     if transaction:
-        prev_transaction_id = transaction.prev_transaction_id
         session.delete(transaction)
-
-        update_session_ops(user_id, transaction_id, prev_transaction_id, session)
-
         session.commit()
 
 
-def update_transaction_list(user_id: int, account_id: int, session: Session):
-    q = (
-        session.query(Transaction).join(Account).filter(
-            Account.id == account_id,
-            Account.user_id == user_id
-        ).order_by(Transaction.date.asc())
-    )
+def get_daily_balance(
+        user_id: int,
+        account_id: int,
+        period_type: int,
+        period_offset: int,
+        start_date: str,
+        end_date: str,
+        session: Session,
+):
+    incomes = case((Transaction.transaction_type == TransactionType.INCOME, Transaction.amount), else_=0.0)
+    expenses = case((Transaction.transaction_type == TransactionType.EXPENSE, Transaction.amount), else_=0.0)
 
-    prev_transaction: Transaction = None
-    for transaction in q.all():
-        if prev_transaction:
-            transaction.prev_transaction_id = prev_transaction.id
-            transaction.updated_at = datetime.now()
-
-            if transaction.transaction_type == TransactionType.INCOME:
-                transaction.balance = prev_transaction.balance + transaction.amount
-            elif transaction.transaction_type == TransactionType.EXPENSE:
-                transaction.balance = prev_transaction.balance - transaction.amount
-
-            transaction = session.merge(transaction)
-
-            prev_transaction = transaction
-        else:
-            prev_transaction = transaction
-            prev_transaction.balance = prev_transaction.amount
-
-    session.commit()
-
-
-def update_session_ops(user_id: int, transaction_id: uuid, prev_transaction_id: uuid, session: Session):
-    q = (
-        session.query(Transaction).join(Account).where(
-            Transaction.prev_transaction_id == transaction_id, Account.user_id == user_id
-        )
-    )
-
-    next_transaction = q.one()
-    next_transaction.prev_transaction_id = prev_transaction_id
-    session.merge(next_transaction)
-
-
-def get_init_balance(user_id: int, last_transaction_date: datetime, session: Session):
     q = (
         session.query(
-            Transaction.account_id,
-            func.max(Transaction.date),
-        ).join(Account).join(User).filter(
-            User.id == user_id,
-            Transaction.date <= last_transaction_date,
-        ).group_by(Transaction.account_id)
+            Transaction.date,
+            func.sum(incomes) - func.sum(expenses),
+        ).join(Account).where(
+            Account.user_id == user_id
+        )
     )
 
-    init_balance = 0.0
-    for result in q.all():
-        account_id = result[0]
-        transaction_date = result[1]
+    if account_id:
+        q = q.filter(Account.id == account_id)
 
-        q = (
-            session.query(Transaction.balance).join(Account).join(User).filter(
-                User.id == user_id,
-                Account.id == account_id,
-                Transaction.date == transaction_date,
-            ).order_by(Transaction.balance.desc()).limit(1)
-        )
+    q = q.group_by(Transaction.date,).order_by(Transaction.date)
 
-        init_balance += q.scalar()
+    daily_balance = []
+    prev_day_balance = 0.0
+    for balance in q.all():
+        prev_day_balance += balance[1]
+        daily_balance.append((balance[0], prev_day_balance))
 
-    return init_balance
+    if period_type:
+        start_date, end_date = get_date_rage(PeriodType(period_type), start_date, end_date)
+
+        balances_dict = dict(daily_balance)
+
+        last_value = None
+
+        balances = []
+        for days in range(0, (end_date - start_date).days):
+            current_day = start_date + timedelta(days=days)
+
+            current_value = balances_dict.get(current_day, None)
+            if not last_value:
+                last_value = current_value
+
+            if not current_value and last_value:
+                current_value = last_value
+
+            balances.append((current_day, current_value))
+
+        return balances
+
+    return daily_balance

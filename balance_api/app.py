@@ -13,7 +13,7 @@ def create_app():
         options={"propagate_exceptions": True},
     )
 
-    connexion_app.add_api('spec.yaml')
+    connexion_app.add_api("spec.yaml")
 
     flask_app = connexion_app.app
     flask_app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI

@@ -5,17 +5,15 @@ from jose import JWTError, jwt
 from jose.constants import Algorithms
 from werkzeug.exceptions import Unauthorized
 
-from jose import jwk
-
 from balance_api.models.users import User
 
-JWT_ISSUER = 'com.julianovidal'
+JWT_ISSUER = "com.julianovidal"
 JWT_SECRET = {
     "kty": "oct",
     "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
     "use": "sig",
     "alg": "HS256",
-    "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"
+    "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
 }
 JWT_LIFETIME_SECONDS = 3600
 JWT_ALGORITHM = Algorithms.HS256

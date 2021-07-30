@@ -54,6 +54,8 @@ class AssetResource(Resource):
 @database_operation(max_tries=3)
 def search_assets(keywords: str, session: Session):
     assets = search_a(keywords, session)
-    return jsonify({
-        "assets": [AssetResource(asset).serialize() for asset in assets],
-    })
+    return jsonify(
+        {
+            "assets": [AssetResource(asset).serialize() for asset in assets],
+        }
+    )

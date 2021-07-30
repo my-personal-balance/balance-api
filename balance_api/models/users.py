@@ -23,9 +23,7 @@ class User(Base):
 
 
 def authenticate(email: str, password: str, session: Session):
-    q = (
-        session.query(User).filter(User.email == email)
-    )
+    q = session.query(User).filter(User.email == email)
     try:
         return q.one()
     except NoResultFound:

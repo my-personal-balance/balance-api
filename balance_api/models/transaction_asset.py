@@ -19,9 +19,7 @@ from balance_api.models.transactions import Transaction
 
 class TransactionAsset(Base):
     __tablename__ = "transaction_assets"
-    __table_args__ = (
-        PrimaryKeyConstraint('transaction_id', 'asset_isin'),
-    )
+    __table_args__ = (PrimaryKeyConstraint("transaction_id", "asset_isin"),)
 
     transaction_id = Column(
         INTEGER, ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
@@ -37,7 +35,7 @@ class TransactionAsset(Base):
 
 
 def create_transaction_asset(
-        transaction: Transaction, asset: Asset, session: Session
+    transaction: Transaction, asset: Asset, session: Session
 ) -> TransactionAsset:
     transaction_asset = TransactionAsset()
     transaction_asset.transaction = transaction
@@ -50,14 +48,12 @@ def create_transaction_asset(
 
 
 def create_transaction_asset_with_isin(
-        transaction: Transaction, isin: str, session: Session
+    transaction: Transaction, isin: str, session: Session
 ) -> TransactionAsset:
     asset = find_asset(isin, session)
     if not asset:
         raise AssetNotFoundException(detail=f"Asset {isin} not found.")
 
     return create_transaction_asset(
-        transaction=transaction,
-        asset=asset,
-        session=session
+        transaction=transaction, asset=asset, session=session
     )

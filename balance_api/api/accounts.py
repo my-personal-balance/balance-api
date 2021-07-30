@@ -80,16 +80,16 @@ def list_accounts(session: Session, **kwargs):
 
 def get_account_financial_data(account: Account, session: Session) -> dict:
     balance, incomes, expenses = get_balance(
-        user_id=account.user_id,
-        account_id=account.id,
-        session=session
+        user_id=account.user_id, account_id=account.id, session=session
     )
 
-    account = AccountResource(account).serialize(**{
-        "balance": balance,
-        "incomes": incomes,
-        "expenses": expenses,
-    })
+    account = AccountResource(account).serialize(
+        **{
+            "balance": balance,
+            "incomes": incomes,
+            "expenses": expenses,
+        }
+    )
 
     return account
 

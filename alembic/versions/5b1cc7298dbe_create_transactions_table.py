@@ -33,7 +33,7 @@ def upgrade():
             Column("amount", FLOAT),
             Column("account_id", INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")),
             Column("description", TEXT),
-            Column("account_tag_id", INTEGER, ForeignKey("account_tags.id", onupdate="CASCADE")),
+            Column("tag_id", INTEGER, ForeignKey("tags.id", onupdate="CASCADE")),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),
         )

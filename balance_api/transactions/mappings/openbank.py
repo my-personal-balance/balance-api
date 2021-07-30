@@ -15,12 +15,12 @@ from balance_api.models.transactions import TransactionType
 
 
 def find_type(transaction):
-    amount = float(transaction.get('Importe'))
+    amount = float(transaction.get("Importe"))
     return TransactionType.EXPENSE if amount < 0 else TransactionType.INCOME
 
 
 def get_date(transaction):
-    return datetime.strptime(transaction.get('Fecha Valor'), "%Y-%m-%d")
+    return datetime.strptime(transaction.get("Fecha Valor"), "%Y-%m-%d")
 
 
 def get_tag(transaction):
@@ -28,16 +28,16 @@ def get_tag(transaction):
 
 
 mapping = {
-    'has_header': True,
-    'is_split': False,
-    'bank': 'Openbank',
-    'currency': 'EUR',
-    'delimiter': ',',
-    'account': 'Openbank checking',
-    'type': find_type,
-    'date': get_date,
-    'amount': itemgetter('Importe'),
-    'description': itemgetter('Concepto'),
-    'notes': None,
-    'tag': get_tag,
+    "has_header": True,
+    "is_split": False,
+    "bank": "Openbank",
+    "currency": "EUR",
+    "delimiter": ",",
+    "account": "Openbank checking",
+    "type": find_type,
+    "date": get_date,
+    "amount": itemgetter("Importe"),
+    "description": itemgetter("Concepto"),
+    "notes": None,
+    "tag": get_tag,
 }

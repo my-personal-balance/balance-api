@@ -30,7 +30,9 @@ class AuthResource(Resource):
 @database_operation(max_tries=3)
 def token(session: Session, **auth):
     auth_resource = AuthResource.deserialize(auth["body"], create=True)
-    user = authenticate(auth_resource.get("email"), auth_resource.get("password"), session)
+    user = authenticate(
+        auth_resource.get("email"), auth_resource.get("password"), session
+    )
     if user:
         jwt_token = security.generate_token(user)
         response = {
@@ -40,5 +42,3 @@ def token(session: Session, **auth):
         return jsonify(response), 200
     else:
         return jsonify({}), 401
-
-

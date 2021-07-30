@@ -33,6 +33,15 @@ components:
         type: integer
         format: int32
 
+    TagId:
+      in: path
+      name: tag_id
+      description: Unique Tag ID
+      required: true
+      schema:
+        type: integer
+        format: int32
+
     AccountIdQuery:
       in: query
       name: account_id
@@ -119,18 +128,6 @@ components:
           nullable: true
           example: 'John Doe'
           description: The user name
-        created_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was created
-        updated_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the user was last modified/updated
 
     Account:
       type: object
@@ -160,18 +157,6 @@ components:
             - OTHERS
           example: 'checking'
           description: The account type
-        created_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the account was created
-        updated_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the account was last modified/updated
 
     Accounts:
       type: object
@@ -181,7 +166,7 @@ components:
           items:
             $ref: '#/components/schemas/Account'
 
-    AccountTag:
+    Tag:
       type: object
       properties:
         id:
@@ -193,30 +178,14 @@ components:
           nullable: true
           example: 'Miscellaneous'
           description: The account tag value
-        account_id:
-          type: integer
-          example: 1
-          description: The user account id
-        created_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the tag was created
-        updated_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the tag was last modified/updated
 
-    AccountTags:
+    Tags:
       type: object
       properties:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/AccountTag'
+            $ref: '#/components/schemas/Tag'
 
     Transaction:
       type: object
@@ -255,22 +224,10 @@ components:
           type: string
           example: "Paypal"
           description: Transaction description
-        tag:
-          $ref: '#/components/schemas/AccountTag'
-        asset:
-          $ref: '#/components/schemas/AccountTag'
-        created_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the transaction was created
-        updated_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the transaction was last modified/updated
+        tag_id:
+          type: integer
+          format: int32
+          description: Tag id description
 
     Transactions:
       type: object
@@ -302,23 +259,11 @@ components:
           format: float
           example: 3.15
           description: Price this assets is being traded.
-        created_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the asset was created
-        updated_at:
-          type: string
-          nullable: true
-          format: date-time
-          example: '2019-06-26T11:23:25.865677'
-          description: The timestamp when the asset was last modified/updated
 
     Assets:
       type: object
       properties:
-        tags:
+        assets:
           type: array
           items:
             $ref: '#/components/schemas/Asset'
@@ -432,23 +377,39 @@ paths:
                 $ref: '#/components/schemas/Account'
 
 
-  /accounts/{account_id}/tags:
+  /tags:
     get:
-      summary: Retrieves the list of account tags for a user account
+      summary: Retrieves the list of tags for a user account
       security:
         - oauth2:
             - uid
-      operationId: balance_api.api.account_tags.list_account_tags
-      description: Retrieves the list of account tags for a user account
-      parameters:
-        - $ref: '#/components/parameters/AccountId'
+      operationId: balance_api.api.tags.list_tags
+      description: Retrieves the list of tags for a user account
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountTags'
+                $ref: '#/components/schemas/Tags'
+
+  /tags/{tag_id}:
+    get:
+      summary: Retrieves a tag for a given id
+      security:
+        - oauth2:
+            - uid
+      operationId: balance_api.api.tags.find_tag
+      description: Retrieves a tag for a given id
+      parameters:
+        - $ref: '#/components/parameters/TagId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tags'
 
   /transactions:
     post:
@@ -493,6 +454,28 @@ paths:
                 $ref: '#/components/schemas/Transactions'
 
   /transactions/{transaction_id}:
+    put:
+      summary: Updates a transaction
+      security:
+        - oauth2:
+            - uid
+      operationId: balance_api.api.transactions.update_transaction
+      description: Updates a transaction
+      parameters:
+        - $ref: '#/components/parameters/TransactionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        201:
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+
     delete:
       summary: Deletes a single transaction
       security:

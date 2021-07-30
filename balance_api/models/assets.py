@@ -26,9 +26,7 @@ class Asset(Base):
 
 
 def find_asset(isin: str, session: Session) -> Asset:
-    q = (
-        session.query(Asset).where(Asset.isin == isin)
-    )
+    q = session.query(Asset).where(Asset.isin == isin)
     try:
         return q.one()
     except NoResultFound:
@@ -36,12 +34,7 @@ def find_asset(isin: str, session: Session) -> Asset:
 
 
 def search_assets(keyword: str, session: Session):
-    q = (
-        session.query(Asset).filter(
-            or_(
-                Asset.isin.like(f"%{keyword}%"),
-                Asset.description.like(f"%{keyword}%")
-            )
-        )
+    q = session.query(Asset).filter(
+        or_(Asset.isin.like(f"%{keyword}%"), Asset.description.like(f"%{keyword}%"))
     )
     return q.all()

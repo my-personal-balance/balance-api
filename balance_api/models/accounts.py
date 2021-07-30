@@ -28,7 +28,7 @@ class Account(Base):
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     alias = Column(TEXT)
     user_id = Column(
-      INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
+        INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
     )
     type = Column(Enum(AccountType), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -36,8 +36,8 @@ class Account(Base):
 
 
 def find_account(user_id: int, account_id: int, session: Session):
-    q = (
-        session.query(Account).where(Account.user_id == user_id, Account.id == account_id)
+    q = session.query(Account).where(
+        Account.user_id == user_id, Account.id == account_id
     )
     try:
         return q.one()
@@ -49,7 +49,9 @@ def find_account(user_id: int, account_id: int, session: Session):
 
 def list_accounts(user_id: int, session: Session):
     return (
-        session.query(Account).where(Account.user_id == user_id).order_by(Account.created_at)
+        session.query(Account)
+        .where(Account.user_id == user_id)
+        .order_by(Account.created_at)
     ).all()
 
 

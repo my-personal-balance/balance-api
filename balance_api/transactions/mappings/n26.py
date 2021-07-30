@@ -20,25 +20,25 @@ from balance_api.models.transactions import TransactionType
 
 
 def find_type(transaction):
-    amount = float(transaction.get('Amount (EUR)'))
+    amount = float(transaction.get("Amount (EUR)"))
     return TransactionType.EXPENSE if amount < 0 else TransactionType.INCOME
 
 
 def get_date(transaction):
-    return datetime.strptime(transaction.get('Date'), "%Y-%m-%d")
+    return datetime.strptime(transaction.get("Date"), "%Y-%m-%d")
 
 
 mapping = {
-    'has_header': True,
-    'is_split': False,
-    'bank': 'N26',
-    'currency': 'EUR',
-    'delimiter': ',',
-    'account': 'N26 checking',
-    'type': find_type,
-    'date': get_date,
-    'amount': itemgetter('Amount (EUR)'),
-    'description': itemgetter('Payee'),
-    'notes': itemgetter('Payment reference'),
-    'tag': itemgetter('Category'),
+    "has_header": True,
+    "is_split": False,
+    "bank": "N26",
+    "currency": "EUR",
+    "delimiter": ",",
+    "account": "N26 checking",
+    "type": find_type,
+    "date": get_date,
+    "amount": itemgetter("Amount (EUR)"),
+    "description": itemgetter("Payee"),
+    "notes": itemgetter("Payment reference"),
+    "tag": itemgetter("Category"),
 }

@@ -60,3 +60,10 @@ def create_account(account_resource, session: Session):
     session.add(new_account)
     session.commit()
     return new_account
+
+
+def delete_account(user_id: int, account_id: int, session: Session):
+    account = find_account(user_id, account_id, session)
+    if account:
+        session.delete(account)
+        session.commit()

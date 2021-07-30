@@ -10,6 +10,7 @@ from balance_api.models.accounts import (
     find_account as find_a,
     list_accounts as list_a,
     create_account as create_a,
+    delete_account as delete_a,
 )
 from balance_api.models.transactions import get_balance
 
@@ -101,3 +102,10 @@ def create_account(session: Session, **kwargs):
     account_resource["user_id"] = user_id
     new_account = create_a(account_resource, session)
     return jsonify(AccountResource(new_account).serialize()), 201
+
+
+@database_operation(max_tries=3)
+def delete_account(account_id: int, session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
+    delete_a(user_id, account_id, session)
+    return 204

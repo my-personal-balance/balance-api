@@ -58,17 +58,53 @@ class Transaction(Base):
     tag = relationship(Tag)
 
 
-def merge_transaction(user_id: int, transaction_resource: dict, session: Session) -> Transaction:
+def create_transaction(user_id: int, transaction_resource, session: Session):
     transaction = Transaction(**transaction_resource)
     transaction.amount = abs(transaction.amount)
-    if "id" in transaction_resource:
-        transaction.updated_at = datetime.utcnow()
-        transaction = session.merge(transaction)
-    else:
-        session.add(transaction)
-
+    session.add(transaction)
     session.commit()
     return transaction
+
+
+def update_transaction(user_id: int, transaction_resource, session: Session):
+    transaction = Transaction(**transaction_resource)
+    transaction.amount = abs(transaction.amount)
+    transaction.updated_at = datetime.utcnow()
+    transaction = session.merge(transaction)
+    session.commit()
+    return transaction
+
+
+def patch_transaction(
+    user_id: int, transaction_resource, session: Session
+) -> Transaction:
+    transaction_data = Transaction(**transaction_resource)
+    if transaction_data.id:
+        q = (
+            session.query(Transaction).filter(Transaction.id == transaction_data.id,)
+        )
+        try:
+            transaction = q.one()
+            if not transaction and transaction.account.user_id == user_id:
+                raise NoResultFound
+
+            if transaction_data.date:
+                transaction.date = transaction_data.date
+            if transaction_data.amount:
+                transaction.amount = transaction_data.amount
+            if transaction_data.description:
+                transaction.description = transaction_data.description
+            if transaction_data.tag_id:
+                transaction.tag_id = transaction_data.tag_id
+
+            transaction.updated_at = datetime.utcnow()
+            transaction = session.merge(transaction)
+            session.commit()
+
+            return transaction
+
+        except NoResultFound:
+            return None
 
 
 def find_transaction(

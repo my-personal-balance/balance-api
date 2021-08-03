@@ -6,13 +6,13 @@ from balance_api.api.accounts import AccountResource
 from balance_api.api.tags import TagResource
 from balance_api.connection.db import database_operation
 from balance_api.exceptions import ResourceBadRequest
-from balance_api.models.transaction_asset import create_transaction_asset_with_isin
 from balance_api.models.transactions import (
     Transaction,
-    TransactionType,
-    merge_transaction,
+    create_transaction as create_t,
     delete_transaction as delete_t,
     list_transactions as list_t,
+    patch_transaction,
+    update_transaction as update_t,
     get_balance,
 )
 from balance_api.transactions.loader import TransactionFileLoader
@@ -121,7 +121,7 @@ def create_transaction(session: Session, **transaction):
     transaction_resource = TransactionResource.deserialize(
         transaction_data, create=True
     )
-    new_transaction = merge_transaction(user_id, transaction_resource, session)
+    new_transaction = create_t(user_id, transaction_resource, session)
 
     return jsonify(TransactionResource(new_transaction).serialize()), 201
 
@@ -134,9 +134,39 @@ def update_transaction(transaction_id: int, session: Session, **transaction):
     transaction_resource = TransactionResource.deserialize(
         transaction_data, create=True
     )
-    updated_transaction = merge_transaction(user_id, transaction_resource, session)
+    updated_transaction = update_t(user_id, transaction_resource, session)
 
     return jsonify(TransactionResource(updated_transaction).serialize()), 200
+
+
+@database_operation(max_tries=3)
+def batch_updates_transactions(session: Session, **transaction):
+    user_id = dict(transaction)["user"]
+    if "transactions" in transaction["body"]:
+        transactions_data = transaction["body"]["transactions"]
+
+        patched_transactions = [
+            patch_transaction(
+                user_id,
+                TransactionResource.deserialize(transaction_data, create=True),
+                session,
+            )
+            for transaction_data in transactions_data
+        ]
+
+        return (
+            jsonify(
+                {
+                    "transactions": [
+                        TransactionResource(transaction).serialize()
+                        for transaction in patched_transactions
+                    ],
+                }
+            ),
+            200,
+        )
+    else:
+        return 400
 
 
 @database_operation(max_tries=3)

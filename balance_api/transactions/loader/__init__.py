@@ -4,6 +4,7 @@ import tempfile
 from meza.io import read_csv, read_xls
 from sqlalchemy.orm.session import Session
 from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 
 from balance_api.models.tags import find_or_create_account_tag
 from balance_api.models.transactions import Transaction
@@ -65,17 +66,20 @@ class TransactionFileLoader:
             )
 
     def process(self):
-        with tempfile.NamedTemporaryFile() as f:
+        temp_file_path = (
+            f"{tempfile.gettempdir()}/{secure_filename(self.file.filename)}"
+        )
+        with open(temp_file_path, mode="wb+") as f:
             self.file.save(f)
-
             records = self.__read_file(f)
-            if records:
-                mapping = self.__guess_mapping(records)
-                for transaction in self.__transform_records(records, mapping):
-                    self.session.add(transaction)
 
-                self.session.commit()
-            else:
-                raise LoadTransactionFileException(
-                    detail="Error while loading transaction file"
-                )
+        if records:
+            mapping = self.__guess_mapping(records)
+            for transaction in self.__transform_records(records, mapping):
+                self.session.add(transaction)
+
+            self.session.commit()
+        else:
+            raise LoadTransactionFileException(
+                detail="Error while loading transaction file"
+            )

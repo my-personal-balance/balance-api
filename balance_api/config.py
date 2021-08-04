@@ -13,5 +13,6 @@ SQLALCHEMY_DATABASE_URI = os.getenv(
     "SQLALCHEMY_DATABASE_URI",
     f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}",
 )
-SQLALCHEMY_RECORD_QUERIES = os.getenv("SQLALCHEMY_RECORD_QUERIES", "true").lower() == "true"
-
+SQLALCHEMY_RECORD_QUERIES = (
+    os.getenv("SQLALCHEMY_RECORD_QUERIES", "true").lower() == "true"
+)

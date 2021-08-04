@@ -10,10 +10,7 @@ def create_app():
     connexion_app = connexion.FlaskApp(
         __name__,
         specification_dir="openapi/",
-        options={
-            "propagate_exceptions": True,
-            "swagger_ui": False
-        },
+        options={"propagate_exceptions": True, "swagger_ui": False},
     )
 
     connexion_app.add_api("spec.yaml")

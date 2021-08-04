@@ -80,8 +80,8 @@ def patch_transaction(
 ) -> Transaction:
     transaction_data = Transaction(**transaction_resource)
     if transaction_data.id:
-        q = (
-            session.query(Transaction).filter(Transaction.id == transaction_data.id,)
+        q = session.query(Transaction).filter(
+            Transaction.id == transaction_data.id,
         )
         try:
             transaction = q.one()

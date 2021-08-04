@@ -90,6 +90,8 @@ def patch_transaction(
 
             if transaction_data.date:
                 transaction.date = transaction_data.date
+            if transaction_data.transaction_type:
+                transaction.transaction_type = transaction_data.transaction_type
             if transaction_data.amount:
                 transaction.amount = transaction_data.amount
             if transaction_data.description:

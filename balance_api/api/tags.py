@@ -53,11 +53,11 @@ def find_tag(tag_id: int, session: Session, **kwargs):
         Tag.id == tag_id,
     )
     try:
-        account_tag = q.one()
+        tag = q.one()
     except NoResultFound:
         return {}, 404
 
-    return jsonify(TagResource(account_tag).serialize())
+    return jsonify(TagResource(tag).serialize())
 
 
 @database_operation(max_tries=3)

@@ -75,9 +75,7 @@ def update_transaction(user_id: int, transaction_resource, session: Session):
     return transaction
 
 
-def patch_transaction(
-    user_id: int, transaction_resource, session: Session
-) -> Transaction:
+def patch_transaction(user_id: int, transaction_resource, session: Session):
     transaction_data = Transaction(**transaction_resource)
     if transaction_data.id:
         q = session.query(Transaction).filter(
@@ -111,7 +109,7 @@ def patch_transaction(
 
 def find_transaction(
     user_id: int, account_id: int, transaction_id: int, session: Session
-) -> Transaction:
+):
     q = (
         session.query(Transaction)
         .join(Account)
@@ -301,3 +299,69 @@ def get_daily_balance(
         return balances
 
     return daily_balance
+
+
+def list_group_by_tag(
+    user_id: int,
+    account_id: int,
+    period_type: int,
+    period_offset: int,
+    start_date: str,
+    end_date: str,
+    session: Session,
+):
+    income = case(
+        (Transaction.transaction_type == TransactionType.INCOME, Transaction.amount),
+        else_=0.0,
+    )
+    expenses = case(
+        (Transaction.transaction_type == TransactionType.EXPENSE, Transaction.amount),
+        else_=0.0,
+    )
+    transfers = case(
+        (Transaction.transaction_type == TransactionType.TRANSFER, Transaction.amount),
+        else_=0.0,
+    )
+
+    q = (
+        session.query(
+            func.sum(income),
+            func.sum(expenses),
+            func.sum(transfers),
+            Tag,
+        )
+        .join(Account)
+        .join(Tag)
+        .filter(Account.user_id == user_id)
+    )
+
+    if account_id:
+        q = q.filter(Account.id == account_id)
+
+    if period_type:
+        start_date, end_date = get_date_rage(
+            PeriodType(period_type), start_date, end_date
+        )
+        q = q.filter(between(Transaction.date, start_date, end_date))
+
+    q = q.group_by(
+        Tag,
+    ).order_by(Tag.value)
+
+    items = []
+    for result in q.all():
+        incomes = result[0] if result[0] else 0.0
+        expenses = result[1] if result[1] else 0.0
+        transfers = result[2] if result[2] else 0.0
+        tag = result[3]
+
+        items.append(
+            {
+                "tag": tag,
+                TransactionType.INCOME.name: round(incomes, 2),
+                TransactionType.EXPENSE.name: round(expenses, 2),
+                TransactionType.TRANSFER.name: round(transfers, 2),
+            }
+        )
+
+    return items

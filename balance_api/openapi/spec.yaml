@@ -97,6 +97,16 @@ components:
       schema:
         type: string
 
+    ReportType:
+      in: query
+      name: report_type
+      description: Report Type
+      required: true
+      schema:
+        type: string
+        x-extensible-enum:
+          - group_by_tag
+
   schemas:
     Login:
       type: object
@@ -236,11 +246,22 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Transaction'
+
+    Balance:
+      type: object
+      properties:
         balance:
           type: number
           format: float
           example: 3.15
-          description: Transaction sum
+        expenses:
+          type: number
+          format: float
+          example: 3.15
+        incomes:
+          type: number
+          format: float
+          example: 3.15
 
     Asset:
       type: object
@@ -388,6 +409,28 @@ paths:
       responses:
         204:
           description: NO CONTENT
+
+  /balance:
+    get:
+      summary: Retrieves the balance of the user
+      security:
+        - oauth2:
+          - uid
+      operationId: balance_api.api.accounts.get_account_balance
+      description: Retrieves the balance of the user
+      parameters:
+        - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/PeriodType'
+        - $ref: '#/components/parameters/PeriodOffset'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
 
   /tags:
     get:
@@ -590,3 +633,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Assets'
+
+  /reports/transactions:
+    get:
+      summary: Return the transactions report
+      security:
+        - oauth2:
+            - uid
+      operationId: balance_api.api.reports.get_transactions
+      description: Return the transactions report
+      parameters:
+        - $ref: '#/components/parameters/ReportType'
+        - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/PeriodType'
+        - $ref: '#/components/parameters/PeriodOffset'
+        - $ref: '#/components/parameters/StartDate'
+        - $ref: '#/components/parameters/EndDate'
+      responses:
+        200:
+          description: OK

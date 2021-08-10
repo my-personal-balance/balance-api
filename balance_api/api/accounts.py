@@ -109,3 +109,34 @@ def delete_account(account_id: int, session: Session, **kwargs):
     user_id = dict(kwargs)["user"]
     delete_a(user_id, account_id, session)
     return 204
+
+
+@database_operation(max_tries=3)
+def get_account_balance(
+    account_id: int = None,
+    period_type: int = None,
+    period_offset: int = None,
+    start_date: str = None,
+    end_date: str = None,
+    session: Session = None,
+    **kwargs
+):
+    user_id = dict(kwargs)["user"]
+
+    balance, incomes, expenses = get_balance(
+        int(user_id),
+        account_id,
+        period_type,
+        period_offset,
+        start_date,
+        end_date,
+        session,
+    )
+
+    return jsonify(
+        {
+            "balance": balance,
+            "incomes": incomes,
+            "expenses": expenses,
+        }
+    )

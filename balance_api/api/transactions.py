@@ -87,25 +87,12 @@ def list_transactions(
         session,
     )
 
-    balance, incomes, expenses = get_balance(
-        int(user_id),
-        account_id,
-        period_type,
-        period_offset,
-        start_date,
-        end_date,
-        session,
-    )
-
     response = jsonify(
         {
             "transactions": [
                 TransactionResource(transaction).serialize()
                 for transaction in transactions
-            ],
-            "balance": balance,
-            "incomes": incomes,
-            "expenses": expenses,
+            ]
         }
     )
 

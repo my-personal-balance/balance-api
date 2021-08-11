@@ -1,22 +1,26 @@
 import time
 
+import jwt
 import six
-from jose import JWTError, jwt
-from jose.constants import Algorithms
+from cryptography.hazmat.primitives import serialization
+from jwt.exceptions import (
+    DecodeError,
+)
 from werkzeug.exceptions import Unauthorized
 
+from balance_api import config
 from balance_api.models.users import User
 
-JWT_ISSUER = "com.julianovidal"
-JWT_SECRET = {
-    "kty": "oct",
-    "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
-    "use": "sig",
-    "alg": "HS256",
-    "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-}
+JWT_ISSUER = "com.julianovidal.balance-api"
+
+public_key = open(config.RSA256_PUB_CERT_PATH, "r").read()
+pub_key = serialization.load_ssh_public_key(public_key.encode())
+
+private_key = open(config.RSA256_PRIVATE_CERT_PATH, "r").read()
+priv_key = serialization.load_ssh_private_key(private_key.encode(), password=None)
+
 JWT_LIFETIME_SECONDS = 3600
-JWT_ALGORITHM = Algorithms.HS256
+JWT_ALGORITHM = "RS256"
 
 
 def generate_token(user: User):
@@ -28,19 +32,29 @@ def generate_token(user: User):
         "sub": str(user.id),
     }
 
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return jwt.encode(
+        payload=payload,
+        key=priv_key,
+        algorithm=JWT_ALGORITHM,
+    )
 
 
 def decode_token(token):
     try:
         timestamp = _current_timestamp()
-        decoded = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        decoded = jwt.decode(
+            token,
+            key=pub_key,
+            algorithms=[
+                JWT_ALGORITHM,
+            ],
+        )
         expiration_timestamp = decoded.get("exp", 0)
         if expiration_timestamp < timestamp:
-            raise JWTError
+            raise DecodeError
 
         return decoded
-    except JWTError as e:
+    except DecodeError as e:
         six.raise_from(Unauthorized, e)
 
 

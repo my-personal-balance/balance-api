@@ -16,3 +16,6 @@ SQLALCHEMY_DATABASE_URI = os.getenv(
 SQLALCHEMY_RECORD_QUERIES = (
     os.getenv("SQLALCHEMY_RECORD_QUERIES", "true").lower() == "true"
 )
+
+RSA256_PRIVATE_CERT_PATH = os.getenv("RSA256_CERT_PATH", ".ssh/id_rsa")
+RSA256_PUB_CERT_PATH = os.getenv("RSA256_CERT_PATH", ".ssh/id_rsa.pub")

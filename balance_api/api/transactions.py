@@ -68,17 +68,16 @@ class TransactionResource(Resource):
 
 @database_operation(max_tries=3)
 def list_transactions(
+    user: int,
     account_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: int = None,
     end_date: int = None,
     session: Session = None,
-    **kwargs,
 ):
-    user_id = dict(kwargs)["user"]
     transactions = list_t(
-        int(user_id),
+        user,
         account_id,
         period_type,
         period_offset,

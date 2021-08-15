@@ -14,18 +14,17 @@ class ReportType(enum.Enum):
 
 @database_operation(max_tries=3)
 def get_balance(
+    user: int,
     account_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: int = None,
     end_date: int = None,
     session: Session = None,
-    **kwargs,
 ):
-    user_id = dict(kwargs)["user"]
 
     balances = get_daily_balance(
-        user_id=int(user_id),
+        user_id=user,
         account_id=account_id,
         period_type=period_type,
         period_offset=period_offset,
@@ -47,6 +46,7 @@ def get_balance(
 
 @database_operation(max_tries=3)
 def get_transactions(
+    user: int,
     report_type: ReportType,
     account_id: int = None,
     period_type: int = None,
@@ -54,15 +54,12 @@ def get_transactions(
     start_date: int = None,
     end_date: int = None,
     session: Session = None,
-    **kwargs,
 ):
-    user_id = dict(kwargs)["user"]
-
     if report_type:
 
         if ReportType(report_type) == ReportType.group_by_tag:
             items = list_group_by_tag(
-                user_id=int(user_id),
+                user_id=user,
                 account_id=account_id,
                 period_type=period_type,
                 period_offset=period_offset,

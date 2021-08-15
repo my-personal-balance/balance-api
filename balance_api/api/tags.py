@@ -46,10 +46,9 @@ class TagResource(Resource):
 
 
 @database_operation(max_tries=3)
-def find_tag(tag_id: int, session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
+def find_tag(user: int, tag_id: int, session: Session):
     q = session.query(Tag).where(
-        Tag.user_id == user_id,
+        Tag.user_id == user,
         Tag.id == tag_id,
     )
     try:
@@ -61,7 +60,6 @@ def find_tag(tag_id: int, session: Session, **kwargs):
 
 
 @database_operation(max_tries=3)
-def list_tags(session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
-    tags = list_t(user_id=user_id, session=session)
+def list_tags(user: int, session: Session):
+    tags = list_t(user_id=user, session=session)
     return jsonify({"tags": [TagResource(tag).serialize() for tag in tags]})

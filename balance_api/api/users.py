@@ -46,12 +46,11 @@ class UserResource(Resource):
 
 
 @database_operation(max_tries=3)
-def me(session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
-    q = session.query(User).filter(User.id == user_id)
+def me(user: int, session: Session):
+    q = session.query(User).filter(User.id == user)
     try:
-        user = q.one()
-        return jsonify(UserResource(user).serialize())
+        user_obj = q.one()
+        return jsonify(UserResource(user_obj).serialize())
     except NoResultFound:
         return None
 

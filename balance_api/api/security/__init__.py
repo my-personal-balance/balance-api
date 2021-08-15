@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives import serialization
 from jwt.exceptions import (
     DecodeError,
 )
+from jwt.exceptions import ExpiredSignatureError
 from werkzeug.exceptions import Unauthorized
 
 from balance_api import config
@@ -55,6 +56,8 @@ def decode_token(token):
 
         return decoded
     except DecodeError as e:
+        six.raise_from(Unauthorized, e)
+    except ExpiredSignatureError as e:
         six.raise_from(Unauthorized, e)
 
 

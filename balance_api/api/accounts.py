@@ -58,9 +58,8 @@ class AccountResource(Resource):
 
 
 @database_operation(max_tries=3)
-def find_account(account_id: uuid, session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
-    account = find_a(user_id, account_id, session)
+def find_account(user: int, account_id: uuid, session: Session):
+    account = find_a(user, account_id, session)
     if not account:
         return {}, 404
 
@@ -69,10 +68,9 @@ def find_account(account_id: uuid, session: Session, **kwargs):
 
 
 @database_operation(max_tries=3)
-def list_accounts(session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
+def list_accounts(user: int, session: Session):
     accounts = []
-    for account in list_a(user_id, session):
+    for account in list_a(user, session):
         account_resource = get_account_financial_data(account, session)
         accounts.append(account_resource)
 
@@ -96,35 +94,31 @@ def get_account_financial_data(account: Account, session: Session) -> dict:
 
 
 @database_operation(max_tries=3)
-def create_account(session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
+def create_account(user: int, session: Session, **kwargs):
     account_resource = AccountResource.deserialize(kwargs["body"], create=True)
-    account_resource["user_id"] = user_id
+    account_resource["user_id"] = user
     new_account = create_a(account_resource, session)
     return jsonify(AccountResource(new_account).serialize()), 201
 
 
 @database_operation(max_tries=3)
-def delete_account(account_id: int, session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
-    delete_a(user_id, account_id, session)
+def delete_account(user: int, account_id: int, session: Session):
+    delete_a(user, account_id, session)
     return 204
 
 
 @database_operation(max_tries=3)
 def get_account_balance(
+    user: int,
     account_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: str = None,
     end_date: str = None,
     session: Session = None,
-    **kwargs
 ):
-    user_id = dict(kwargs)["user"]
-
     balance, incomes, expenses = get_balance(
-        int(user_id),
+        user,
         account_id,
         period_type,
         period_offset,

@@ -70,6 +70,7 @@ class TransactionResource(Resource):
 def list_transactions(
     user: int,
     account_id: int = None,
+    tag_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: int = None,
@@ -79,6 +80,7 @@ def list_transactions(
     transactions = list_t(
         user,
         account_id,
+        tag_id,
         period_type,
         period_offset,
         start_date,

@@ -111,6 +111,7 @@ def delete_account(user: int, account_id: int, session: Session):
 def get_account_balance(
     user: int,
     account_id: int = None,
+    tag_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: str = None,
@@ -120,6 +121,7 @@ def get_account_balance(
     balance, incomes, expenses = get_balance(
         user,
         account_id,
+        tag_id,
         period_type,
         period_offset,
         start_date,

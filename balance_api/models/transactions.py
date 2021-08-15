@@ -128,6 +128,7 @@ def find_transaction(
 def list_transactions(
     user_id: int,
     account_id: int = None,
+    tag_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: str = None,
@@ -138,6 +139,8 @@ def list_transactions(
 
     if account_id:
         q = q.filter(Account.id == account_id)
+    if tag_id:
+        q = q.filter(Transaction.tag_id == tag_id)
     if period_type:
         start_date, end_date = get_date_rage(
             PeriodType(period_type), start_date, end_date
@@ -171,6 +174,7 @@ def get_date_rage(
 def get_balance(
     user_id: int,
     account_id: int = None,
+    tag_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: str = None,
@@ -202,6 +206,8 @@ def get_balance(
 
     if account_id:
         q = q.filter(Account.id == account_id)
+    if tag_id:
+        q = q.filter(Transaction.tag_id == tag_id)
     if period_type:
         start_date, end_date = get_date_rage(
             PeriodType(period_type), start_date, end_date
@@ -237,6 +243,7 @@ def delete_transaction(user_id: int, transaction_id: int, session: Session):
 def get_daily_balance(
     user_id: int,
     account_id: int,
+    tag_id: int,
     period_type: int,
     period_offset: int,
     start_date: str,
@@ -263,6 +270,8 @@ def get_daily_balance(
 
     if account_id:
         q = q.filter(Account.id == account_id)
+    if tag_id:
+        q = q.filter(Transaction.tag_id == tag_id)
 
     q = q.group_by(
         Transaction.date,
@@ -304,6 +313,7 @@ def get_daily_balance(
 def list_group_by_tag(
     user_id: int,
     account_id: int,
+    tag_id: int,
     period_type: int,
     period_offset: int,
     start_date: str,
@@ -337,6 +347,8 @@ def list_group_by_tag(
 
     if account_id:
         q = q.filter(Account.id == account_id)
+    if tag_id:
+        q = q.filter(Tag.id == tag_id)
 
     if period_type:
         start_date, end_date = get_date_rage(

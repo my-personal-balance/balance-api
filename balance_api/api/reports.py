@@ -16,6 +16,7 @@ class ReportType(enum.Enum):
 def get_balance(
     user: int,
     account_id: int = None,
+    tag_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: int = None,
@@ -26,6 +27,7 @@ def get_balance(
     balances = get_daily_balance(
         user_id=user,
         account_id=account_id,
+        tag_id=tag_id,
         period_type=period_type,
         period_offset=period_offset,
         start_date=start_date,
@@ -49,6 +51,7 @@ def get_transactions(
     user: int,
     report_type: ReportType,
     account_id: int = None,
+    tag_id: int = None,
     period_type: int = None,
     period_offset: int = None,
     start_date: int = None,
@@ -61,6 +64,7 @@ def get_transactions(
             items = list_group_by_tag(
                 user_id=user,
                 account_id=account_id,
+                tag_id=tag_id,
                 period_type=period_type,
                 period_offset=period_offset,
                 start_date=start_date,

@@ -51,6 +51,15 @@ components:
         type: integer
         format: int32
 
+    TagIdQuery:
+      in: query
+      name: tag_id
+      description: Transaction tag id
+      required: false
+      schema:
+        type: integer
+        format: int32
+
     PeriodType:
       in: query
       name: period_type
@@ -420,6 +429,7 @@ paths:
       description: Retrieves the balance of the user
       parameters:
         - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/TagIdQuery'
         - $ref: '#/components/parameters/PeriodType'
         - $ref: '#/components/parameters/PeriodOffset'
         - $ref: '#/components/parameters/StartDate'
@@ -496,6 +506,7 @@ paths:
       description: Retrieves the list of transactions for a user
       parameters:
         - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/TagIdQuery'
         - $ref: '#/components/parameters/PeriodType'
         - $ref: '#/components/parameters/PeriodOffset'
         - $ref: '#/components/parameters/StartDate'
@@ -622,6 +633,7 @@ paths:
       description: Return the account(s) total balance
       parameters:
         - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/TagIdQuery'
         - $ref: '#/components/parameters/PeriodType'
         - $ref: '#/components/parameters/PeriodOffset'
         - $ref: '#/components/parameters/StartDate'
@@ -645,6 +657,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ReportType'
         - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/TagIdQuery'
         - $ref: '#/components/parameters/PeriodType'
         - $ref: '#/components/parameters/PeriodOffset'
         - $ref: '#/components/parameters/StartDate'

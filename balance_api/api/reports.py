@@ -73,6 +73,6 @@ def get_transactions(
             )
 
             for item in items:
-                item["tag"] = TagResource(item["tag"]).serialize()
+                item["tag"] = TagResource(item["tag"]).serialize() if item["tag"] else None
 
             return jsonify({"items": items}), 200

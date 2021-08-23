@@ -139,8 +139,12 @@ def list_transactions(
 
     if account_id:
         q = q.filter(Account.id == account_id)
+
     if tag_id:
         q = q.filter(Transaction.tag_id == tag_id)
+    elif tag_id == 0:
+        q = q.filter(Transaction.tag_id == None)
+
     if period_type:
         start_date, end_date = get_date_rage(
             PeriodType(period_type), start_date, end_date
@@ -206,8 +210,12 @@ def get_balance(
 
     if account_id:
         q = q.filter(Account.id == account_id)
+
     if tag_id:
         q = q.filter(Transaction.tag_id == tag_id)
+    elif tag_id == 0:
+        q = q.filter(Transaction.tag_id == None)
+
     if period_type:
         start_date, end_date = get_date_rage(
             PeriodType(period_type), start_date, end_date
@@ -270,8 +278,11 @@ def get_daily_balance(
 
     if account_id:
         q = q.filter(Account.id == account_id)
+
     if tag_id:
         q = q.filter(Transaction.tag_id == tag_id)
+    elif tag_id == 0:
+        q = q.filter(Tag.id == None)
 
     q = q.group_by(
         Transaction.date,
@@ -341,14 +352,17 @@ def list_group_by_tag(
             Tag,
         )
         .join(Account)
-        .join(Tag)
+        .join(Tag, isouter=True)
         .filter(Account.user_id == user_id)
     )
 
     if account_id:
         q = q.filter(Account.id == account_id)
+
     if tag_id:
         q = q.filter(Tag.id == tag_id)
+    elif tag_id == 0:
+        q = q.filter(Tag.id == None)
 
     if period_type:
         start_date, end_date = get_date_rage(

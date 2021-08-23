@@ -133,6 +133,7 @@ def list_transactions(
     period_offset: int = None,
     start_date: str = None,
     end_date: str = None,
+    max_results: int = None,
     session: Session = None,
 ) -> []:
     q = session.query(Transaction).join(Account).join(User).filter(User.id == user_id)
@@ -152,6 +153,9 @@ def list_transactions(
         q = q.filter(between(Transaction.date, start_date, end_date))
 
     q = q.order_by(Transaction.date.desc())
+
+    if max_results:
+        q = q.limit(max_results)
 
     return [transaction for transaction in q.all()]
 

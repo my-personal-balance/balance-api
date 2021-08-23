@@ -77,6 +77,9 @@ def list_transactions(
     end_date: int = None,
     session: Session = None,
 ):
+
+    max_results = None if period_type else 100
+
     transactions = list_t(
         user,
         account_id,
@@ -85,6 +88,7 @@ def list_transactions(
         period_offset,
         start_date,
         end_date,
+        max_results,
         session,
     )
 

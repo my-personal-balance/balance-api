@@ -12,7 +12,7 @@ from balance_api.models.accounts import (
     create_account as create_a,
     delete_account as delete_a,
 )
-from balance_api.models.transactions import get_balance
+from balance_api.models.transactions import get_balance, PeriodType
 
 
 class AccountResource(Resource):
@@ -118,6 +118,9 @@ def get_account_balance(
     end_date: str = None,
     session: Session = None,
 ):
+
+    period_type = period_type if period_type else PeriodType.CURRENT_MONTH.value
+
     balance, incomes, expenses = get_balance(
         user,
         account_id,

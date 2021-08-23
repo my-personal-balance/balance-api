@@ -141,3 +141,5 @@ cython_debug/
 scripts/
 
 .ssh/
+
+/test/data/db

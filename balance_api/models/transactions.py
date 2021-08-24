@@ -152,7 +152,7 @@ def list_transactions(
         )
         q = q.filter(between(Transaction.date, start_date, end_date))
 
-    q = q.order_by(Transaction.date.desc())
+    q = q.order_by(Transaction.date.desc(), Transaction.id)
 
     if max_results:
         q = q.limit(max_results)

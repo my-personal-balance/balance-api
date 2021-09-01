@@ -12,7 +12,7 @@ from sqlalchemy.engine.reflection import Inspector
 from balance_api.models.users import User
 
 # revision identifiers, used by Alembic.
-revision = 'b422e1921e79'
+revision = "b422e1921e79"
 down_revision = None
 branch_labels = None
 depends_on = None

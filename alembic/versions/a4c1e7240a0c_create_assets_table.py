@@ -13,8 +13,8 @@ from sqlalchemy.engine.reflection import Inspector
 from balance_api.models.assets import Asset
 
 # revision identifiers, used by Alembic.
-revision = 'a4c1e7240a0c'
-down_revision = '5b1cc7298dbe'
+revision = "a4c1e7240a0c"
+down_revision = "5b1cc7298dbe"
 branch_labels = None
 depends_on = None
 

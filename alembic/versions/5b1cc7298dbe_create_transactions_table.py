@@ -13,8 +13,8 @@ from sqlalchemy.engine.reflection import Inspector
 from balance_api.models.transactions import Transaction, TransactionType
 
 # revision identifiers, used by Alembic.
-revision = '5b1cc7298dbe'
-down_revision = 'df76125d06a9'
+revision = "5b1cc7298dbe"
+down_revision = "df76125d06a9"
 branch_labels = None
 depends_on = None
 
@@ -31,7 +31,11 @@ def upgrade():
             Column("date", DATE),
             Column("type", Enum(TransactionType)),
             Column("amount", FLOAT),
-            Column("account_id", INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")),
+            Column(
+                "account_id",
+                INTEGER,
+                ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE"),
+            ),
             Column("description", TEXT),
             Column("tag_id", INTEGER, ForeignKey("tags.id", onupdate="CASCADE")),
             Column("created_at", DateTime, nullable=False),

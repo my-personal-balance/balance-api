@@ -147,6 +147,18 @@ components:
           nullable: true
           example: 'John Doe'
           description: The user name
+        email:
+          type: string
+          nullable: true
+          example: 'john.doe@email.com'
+          description: The user email
+        currency:
+          type: string
+          nullable: true
+          description: The dafault user account's currency
+          x-extensible-enum:
+            - EUR
+            - BRL
 
     Account:
       type: object
@@ -176,6 +188,13 @@ components:
             - OTHERS
           example: 'checking'
           description: The account type
+        currency:
+          type: string
+          nullable: true
+          x-extensible-enum:
+            - EUR
+            - BRL
+          description: The account currency type
 
     Accounts:
       type: object

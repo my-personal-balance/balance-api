@@ -21,6 +21,7 @@ class AccountResource(Resource):
         "alias",
         "user_id",
         "type",
+        "currency",
     ]
 
     protected_fields = [
@@ -38,6 +39,7 @@ class AccountResource(Resource):
                 "alias": account.alias,
                 "user_id": account.user_id,
                 "type": account.type.name if account.type else None,
+                "currency": account.currency.name if account.currency else None,
             }
         )
 

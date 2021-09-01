@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.exc import NoResultFound, DataError
 from sqlalchemy.orm.session import Session
 
-from balance_api.models import Base
+from balance_api.models import Base, CurrencyType
 
 
 class AccountType(enum.Enum):
@@ -31,6 +31,7 @@ class Account(Base):
         INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
     )
     type = Column(Enum(AccountType), nullable=False)
+    currency = Column(Enum(CurrencyType))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

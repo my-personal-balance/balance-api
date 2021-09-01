@@ -12,8 +12,8 @@ from sqlalchemy.engine.reflection import Inspector
 from balance_api.models.transaction_asset import TransactionAsset
 
 # revision identifiers, used by Alembic.
-revision = 'a8c0c8235c5f'
-down_revision = 'a4c1e7240a0c'
+revision = "a8c0c8235c5f"
+down_revision = "a4c1e7240a0c"
 branch_labels = None
 depends_on = None
 
@@ -29,12 +29,12 @@ def upgrade():
             Column(
                 "transaction_id",
                 INTEGER,
-                ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
+                ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE"),
             ),
             Column(
                 "asset_isin",
                 TEXT,
-                ForeignKey("assets.isin", onupdate="CASCADE", ondelete="CASCADE")
+                ForeignKey("assets.isin", onupdate="CASCADE", ondelete="CASCADE"),
             ),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),

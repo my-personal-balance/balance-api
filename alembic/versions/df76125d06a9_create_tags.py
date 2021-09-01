@@ -12,8 +12,8 @@ from sqlalchemy.engine.reflection import Inspector
 from balance_api.models.tags import Tag
 
 # revision identifiers, used by Alembic.
-revision = 'df76125d06a9'
-down_revision = '0ce5b4e2f2cb'
+revision = "df76125d06a9"
+down_revision = "0ce5b4e2f2cb"
 branch_labels = None
 depends_on = None
 
@@ -28,7 +28,11 @@ def upgrade():
             Tag.__tablename__,
             Column("id", INTEGER, primary_key=True, autoincrement=True),
             Column("value", TEXT),
-            Column("user_id", INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")),
+            Column(
+                "user_id",
+                INTEGER,
+                ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
+            ),
             Column("created_at", DateTime, nullable=False),
             Column("updated_at", DateTime, nullable=False),
         )

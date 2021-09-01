@@ -12,6 +12,7 @@ class UserResource(Resource):
         "id",
         "name",
         "email",
+        "currency",
     ]
 
     protected_fields = [
@@ -28,6 +29,7 @@ class UserResource(Resource):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
+                "currency": user.currency,
             }
         )
 

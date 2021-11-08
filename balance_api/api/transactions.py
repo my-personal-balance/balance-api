@@ -27,6 +27,7 @@ class TransactionResource(Resource):
         "account_id",
         "description",
         "tag_id",
+        "balance",
     ]
 
     protected_fields = [
@@ -49,6 +50,7 @@ class TransactionResource(Resource):
                 "tag": TagResource(transaction.tag).serialize()
                 if transaction.tag
                 else None,
+                "balance": transaction.balance,
             }
         )
 

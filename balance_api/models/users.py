@@ -19,7 +19,10 @@ class User(Base):
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     name = Column(TEXT)
     email = Column(TEXT)
-    currency = Column(Enum(CurrencyType), default=CurrencyType.EUR,)
+    currency = Column(
+        Enum(CurrencyType),
+        default=CurrencyType.EUR,
+    )
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

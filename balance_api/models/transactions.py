@@ -18,8 +18,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
 
 from balance_api.models import Base
-from balance_api.models.tags import Tag
 from balance_api.models.accounts import Account
+from balance_api.models.tags import Tag
 from balance_api.models.users import User
 
 
@@ -56,6 +56,8 @@ class Transaction(Base):
 
     account = relationship(Account)
     tag = relationship(Tag)
+
+    balance = 0.0
 
 
 def create_transaction(user_id: int, transaction_resource, session: Session):
@@ -146,18 +148,34 @@ def list_transactions(
     elif tag_id == 0:
         q = q.filter(Transaction.tag_id == None)
 
+    q = q.order_by(Transaction.date.asc(), Transaction.id)
+
     if period_type:
         start_date, end_date = get_date_rage(
             PeriodType(period_type), start_date, end_date
         )
-        q = q.filter(between(Transaction.date, start_date, end_date))
 
-    q = q.order_by(Transaction.date.desc(), Transaction.id)
+    transactions = []
+    t_balance = 0.0
+    for transaction in q.all():
+        if TransactionType.INCOME == transaction.transaction_type:
+            t_balance += transaction.amount
+        elif (
+            TransactionType.TRANSFER == transaction.transaction_type
+            or TransactionType.EXPENSE == transaction.transaction_type
+        ):
+            t_balance -= transaction.amount
+        transaction.balance = t_balance
 
-    if max_results:
-        q = q.limit(max_results)
+        if period_type:
+            if end_date >= transaction.date >= start_date:
+                transactions.append(transaction)
+        else:
+            transactions.append(transaction)
 
-    return [transaction for transaction in q.all()]
+    transactions = transactions[::-1]
+
+    return transactions[:max_results] if max_results else transactions
 
 
 def get_date_rage(

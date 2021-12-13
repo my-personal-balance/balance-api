@@ -28,6 +28,10 @@ def get_date(transaction):
     return datetime.strptime(transaction.get("Date"), "%Y-%m-%d")
 
 
+def get_tag(transaction):
+    return transaction.get("Category", None)
+
+
 mapping = {
     "has_header": True,
     "is_split": False,
@@ -40,5 +44,5 @@ mapping = {
     "amount": itemgetter("Amount (EUR)"),
     "description": itemgetter("Payee"),
     "notes": itemgetter("Payment reference"),
-    "tag": itemgetter("Category"),
+    "tag": get_tag,
 }

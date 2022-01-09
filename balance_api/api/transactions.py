@@ -13,7 +13,6 @@ from balance_api.models.transactions import (
     list_transactions as list_t,
     patch_transaction,
     update_transaction as update_t,
-    get_balance,
 )
 from balance_api.transactions.loader import TransactionFileLoader
 

@@ -642,29 +642,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Assets'
 
-  /reports/balance:
-    get:
-      summary: Return the account(s) total balance
-      security:
-        - oauth2:
-            - uid
-      operationId: balance_api.api.reports.get_balance
-      description: Return the account(s) total balance
-      parameters:
-        - $ref: '#/components/parameters/AccountIdQuery'
-        - $ref: '#/components/parameters/TagIdQuery'
-        - $ref: '#/components/parameters/PeriodType'
-        - $ref: '#/components/parameters/PeriodOffset'
-        - $ref: '#/components/parameters/StartDate'
-        - $ref: '#/components/parameters/EndDate'
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Assets'
-
   /reports/transactions:
     get:
       summary: Return the transactions report
@@ -684,3 +661,22 @@ paths:
       responses:
         200:
           description: OK
+
+  /reports/trends:
+    get:
+      summary: Return the account(s) balance trends
+      security:
+        - oauth2:
+            - uid
+      operationId: balance_api.api.reports.get_trends
+      description: Return the account(s) balance trends
+      parameters:
+        - $ref: '#/components/parameters/AccountIdQuery'
+        - $ref: '#/components/parameters/TagIdQuery'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assets'

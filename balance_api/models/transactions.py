@@ -11,6 +11,7 @@ from sqlalchemy import (
     DATE,
     FLOAT,
     DateTime,
+    extract,
 )
 from sqlalchemy import func, case, between
 from sqlalchemy.exc import NoResultFound
@@ -270,79 +271,6 @@ def delete_transaction(user_id: int, transaction_id: int, session: Session):
         session.commit()
 
 
-def get_daily_balance(
-    user_id: int,
-    account_id: int,
-    tag_id: int,
-    period_type: int,
-    period_offset: int,
-    start_date: str,
-    end_date: str,
-    session: Session,
-):
-    incomes = case(
-        (Transaction.transaction_type == TransactionType.INCOME, Transaction.amount),
-        else_=0.0,
-    )
-    expenses = case(
-        (Transaction.transaction_type == TransactionType.EXPENSE, Transaction.amount),
-        else_=0.0,
-    )
-
-    q = (
-        session.query(
-            Transaction.date,
-            func.sum(incomes) - func.sum(expenses),
-        )
-        .join(Account)
-        .where(Account.user_id == user_id)
-    )
-
-    if account_id:
-        q = q.filter(Account.id == account_id)
-
-    if tag_id:
-        q = q.filter(Transaction.tag_id == tag_id)
-    elif tag_id == 0:
-        q = q.filter(Tag.id == None)
-
-    q = q.group_by(
-        Transaction.date,
-    ).order_by(Transaction.date)
-
-    daily_balance = []
-    prev_day_balance = 0.0
-    for balance in q.all():
-        prev_day_balance += balance[1]
-        daily_balance.append((balance[0], prev_day_balance))
-
-    if period_type:
-        start_date, end_date = get_date_rage(
-            PeriodType(period_type), start_date, end_date
-        )
-
-        balances_dict = dict(daily_balance)
-
-        last_value = None
-
-        balances = []
-        for days in range(0, (end_date - start_date).days):
-            current_day = start_date + timedelta(days=days)
-
-            current_value = balances_dict.get(current_day, None)
-            if not last_value:
-                last_value = current_value
-
-            if not current_value and last_value:
-                current_value = last_value
-
-            balances.append((current_day, current_value))
-
-        return balances
-
-    return daily_balance
-
-
 def list_group_by_tag(
     user_id: int,
     account_id: int,
@@ -413,3 +341,71 @@ def list_group_by_tag(
         )
 
     return items
+
+
+def get_montly_balance(
+    user_id: int,
+    account_id: int = None,
+    tag_id: int = None,
+    session: Session = None,
+) -> []:
+    income = case(
+        (Transaction.transaction_type == TransactionType.INCOME, Transaction.amount),
+        else_=0.0,
+    )
+    expenses = case(
+        (Transaction.transaction_type == TransactionType.EXPENSE, Transaction.amount),
+        else_=0.0,
+    )
+    transfers = case(
+        (Transaction.transaction_type == TransactionType.TRANSFER, Transaction.amount),
+        else_=0.0,
+    )
+
+    year_stmt = extract('year', Transaction.date)
+    month_stmt = extract('month', Transaction.date)
+
+    q = (
+        session.query(
+            year_stmt,
+            month_stmt,
+            func.sum(income),
+            func.sum(expenses),
+            func.sum(transfers),
+        )
+        .join(Account)
+        .join(User)
+        .filter(User.id == user_id)
+    )
+
+    if account_id:
+        q = q.filter(Account.id == account_id)
+
+    if tag_id:
+        q = q.filter(Transaction.tag_id == tag_id)
+    elif tag_id == 0:
+        q = q.filter(Transaction.tag_id == None)
+
+    q = q.group_by(
+        year_stmt,
+        month_stmt
+    ).order_by(year_stmt, month_stmt)
+
+    items = []
+    for result in q.all():
+        month = datetime.strptime(f"{int(result[0])}-{int(result[1])}", "%Y-%m")
+        month = datetime.strftime(month, "%b %Y")
+        incomes = result[2] if result[2] else 0.0
+        expenses = result[3] if result[3] else 0.0
+        transfers = result[4] if result[4] else 0.0
+
+        items.append(
+            {
+                "month": month,
+                TransactionType.INCOME.name: round(incomes, 2),
+                TransactionType.EXPENSE.name: round(expenses, 2),
+                TransactionType.TRANSFER.name: round(transfers, 2),
+            }
+        )
+
+    return items[-12:]

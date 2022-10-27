@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_compress import Compress
 from flask_sqlalchemy import SQLAlchemy
 
-import config
+from balance_api import config
 
 
 def create_app():

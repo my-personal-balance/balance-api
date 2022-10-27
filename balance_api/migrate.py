@@ -1,6 +1,6 @@
 import alembic.config
 
-import config
+from balance_api import config
 
 
 def migrate():

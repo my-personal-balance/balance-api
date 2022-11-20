@@ -12,8 +12,8 @@ from sqlalchemy.engine.reflection import Inspector
 from balance_api.models.account_mappers import AccountMapper, SourceFileType
 
 # revision identifiers, used by Alembic.
-revision = '616e66ae7df2'
-down_revision = 'd964d0ccd9c6'
+revision = "616e66ae7df2"
+down_revision = "d964d0ccd9c6"
 branch_labels = None
 depends_on = None
 

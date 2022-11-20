@@ -1,6 +1,6 @@
 import tempfile
 from operator import itemgetter
-
+from datetime import datetime
 from meza.io import read_csv, read_xls
 from sqlalchemy.orm.session import Session
 from werkzeug.datastructures import FileStorage
@@ -24,18 +24,28 @@ class TransactionFileLoader:
         self.user_id = user_id
         self.account_id = account_id
         self.session = session
-        self.source_file_type = SourceFileType(file.content_type)
-        self.account_mapper = None
+
+        self.account_mapper = find_account_mapper(
+            user_id, account_id, session
+        )
+
+        self.mapping_schema = self.account_mapper.source_file_schema
 
     def __read_file(self, temp_file):
-        if SourceFileType.CSV == self.source_file_type:
-            return read_csv(temp_file.name)
-        elif self.source_file_type in [SourceFileType.XLS, SourceFileType.XLSX]:
+        source_file_type = None
+        delimiter = None
+        if self.account_mapper:
+            source_file_type = SourceFileType(self.account_mapper.source_file_type)
+            delimiter = self.mapping_schema.get("file_delimiter")
+        if SourceFileType.CSV == source_file_type:
+            return read_csv(temp_file.name, delimiter=delimiter)
+        elif source_file_type in [SourceFileType.XLS, SourceFileType.XLSX]:
             return read_xls(temp_file.name)
 
-    def __transform_records(self, records, mapping_schema: dict):
+    def __transform_records(self, records):
+
         for record in records:
-            tag_value = self.__get_record_value(mapping_schema.get("tag"), record)
+            tag_value = self.__get_record_value(self.mapping_schema.get("tag"), record)
 
             tag = None
             if tag_value:
@@ -44,13 +54,16 @@ class TransactionFileLoader:
                 )
 
             amount = float(
-                self.__get_record_value(mapping_schema.get("amount"), record)
+                self.__get_record_value(self.mapping_schema.get("amount"), record)
             )
+
             transaction_date = self.__get_record_value(
-                mapping_schema.get("date"), record
+                self.mapping_schema.get("date"), record
             )
+            transaction_date = self.__parse_date(transaction_date)
+
             description = self.__get_record_value(
-                mapping_schema.get("description"), record
+                self.mapping_schema.get("description"), record
             )
 
             transaction_type = (
@@ -70,8 +83,23 @@ class TransactionFileLoader:
     def __get_record_value(cls, key, record):
         try:
             return itemgetter(key)(record)
-        except KeyError:
+        except KeyError as err:
+            print(err)
             return None
+
+    def __parse_date(self, transaction_date):
+        date_format = self.mapping_schema.get("date_format")
+        if date_format:
+            try:
+                nd = datetime.strptime(transaction_date, "%d/%m/%Y")
+                return nd.strftime("%Y-%m-%d")
+            except Exception as e:
+                print(e)
+                raise LoadTransactionFileException(
+                    detail="Error while parsing transaction file date "
+                )
+
+        return transaction_date
 
     def process(self):
         temp_file_path = (
@@ -82,15 +110,13 @@ class TransactionFileLoader:
             records = self.__read_file(f)
 
         if records:
-            account_mapper = find_account_mapper(
-                self.user_id, self.account_id, self.session
-            )
-            for transaction in self.__transform_records(
-                records, account_mapper.source_file_schema
-            ):
+            for transaction in self.__transform_records(records):
                 self.session.add(transaction)
 
-            self.session.commit()
+            try:
+                self.session.commit()
+            except Exception as e:
+                print(e)
         else:
             raise LoadTransactionFileException(
                 detail="Error while loading transaction file"

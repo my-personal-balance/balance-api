@@ -192,7 +192,8 @@ def upload_transaction(session: Session, **kwargs):
 
         try:
             transaction_file_loader.process()
-        except Exception:
+        except Exception as e:
+            print(e)
             raise ResourceBadRequest(detail="Error while loading the transaction file")
 
         return jsonify({"success": True}), 201

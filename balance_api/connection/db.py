@@ -23,7 +23,7 @@ def session_scope() -> OrmSession:
         session.close()
 
 
-engine = create_engine(config.SQLALCHEMY_DATABASE_URI, executemany_mode="batch")
+engine = create_engine(config.SQLALCHEMY_DATABASE_URI, insertmanyvalues_page_size=100)
 Session = sessionmaker(bind=engine)
 
 

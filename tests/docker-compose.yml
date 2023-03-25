@@ -1,6 +1,24 @@
 # Use postgres/example user/password credentials
 version: "3.9"
 services:
+
+  ui:
+    image: julianovidal/balance-ui
+    restart: always
+    ports:
+      - 3000:3000
+
+  api:
+    image: julianovidal/balance-api:2
+    restart: always
+    ports:
+      - 5000:5000
+    environment:
+      DB_HOST: db
+      POSTGRES_DB: balance
+      POSTGRES_USER: balance
+      POSTGRES_PASSWORD: passw0rd
+
   db:
     image: postgres
     restart: always

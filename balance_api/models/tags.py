@@ -22,7 +22,7 @@ class Tag(Base):
     id = Column(INTEGER, primary_key=True, autoincrement=True)
     value = Column(TEXT)
     user_id = Column(
-        UUID(as_uuid=True),
+        INTEGER,
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
     )
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -1,7 +1,7 @@
 import tempfile
-from operator import itemgetter
 from datetime import datetime
-from meza.io import read_csv, read_xls
+from operator import itemgetter
+
 from sqlalchemy.orm.session import Session
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
@@ -9,7 +9,13 @@ from werkzeug.utils import secure_filename
 from balance_api.models.account_mappers import SourceFileType, find_account_mapper
 from balance_api.models.tags import find_or_create_account_tag
 from balance_api.models.transactions import Transaction, TransactionType
-from balance_api.transactions import LoadTransactionFileException
+from balance_api.transactions import (
+    LoadTransactionFileException,
+    MissingAccountMapperException,
+)
+from balance_api.transactions.readers import BaseReader
+from balance_api.transactions.readers.xlsx import ExcelReader
+from balance_api.transactions.readers.csv import CSVReader
 
 
 class TransactionFileLoader:
@@ -25,25 +31,29 @@ class TransactionFileLoader:
         self.account_id = account_id
         self.session = session
 
-        self.account_mapper = find_account_mapper(
-            user_id, account_id, session
-        )
+        self.account_mapper = find_account_mapper(user_id, account_id, session)
 
         self.mapping_schema = self.account_mapper.source_file_schema
 
     def __read_file(self, temp_file):
-        source_file_type = None
-        delimiter = None
-        if self.account_mapper:
-            source_file_type = SourceFileType(self.account_mapper.source_file_type)
-            delimiter = self.mapping_schema.get("file_delimiter")
+        if not self.account_mapper:
+            raise MissingAccountMapperException(
+                f"Missing account mapper for account id {self.account_id}."
+            )
+
+        reader = self.__get_file_reader(temp_file)
+        reader.parse()
+        return reader.tail
+
+    def __get_file_reader(self, temp_file) -> BaseReader:
+        source_file_type = SourceFileType(self.account_mapper.source_file_type)
         if SourceFileType.CSV == source_file_type:
-            return read_csv(temp_file.name, delimiter=delimiter)
+            delimiter = self.mapping_schema.get("file_delimiter")
+            return CSVReader(temp_file, delimiter=delimiter)
         elif source_file_type in [SourceFileType.XLS, SourceFileType.XLSX]:
-            return read_xls(temp_file.name)
+            return ExcelReader(temp_file)
 
     def __transform_records(self, records):
-
         for record in records:
             tag_value = self.__get_record_value(self.mapping_schema.get("tag"), record)
 
@@ -107,8 +117,8 @@ class TransactionFileLoader:
         )
         with open(temp_file_path, mode="wb+") as f:
             self.file.save(f)
-            records = self.__read_file(f)
 
+        records = self.__read_file(temp_file_path)
         if records:
             for transaction in self.__transform_records(records):
                 self.session.add(transaction)

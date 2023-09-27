@@ -1,5 +1,5 @@
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -12,16 +12,14 @@ with patch.dict(
     from balance_api.app import app
     from balance_api.api import security
     from balance_api.models.users import User
-    from balance_api.connection.db import session_scope, engine
-    from balance_api.models import (
-        Base
-    )
-    from balance_api import config
 
 
 @pytest.fixture(autouse=True)
 def patched_environment(monkeypatch):
-    monkeypatch.setenv("SQLALCHEMY_DATABASE_URI", "postgresql://balance:passw0rd@127.0.0.1:5432/balance_test",)
+    monkeypatch.setenv(
+        "SQLALCHEMY_DATABASE_URI",
+        "postgresql://balance:passw0rd@127.0.0.1:5432/balance_test",
+    )
 
 
 @pytest.fixture()

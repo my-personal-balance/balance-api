@@ -120,7 +120,6 @@ def get_account_balance(
     end_date: str = None,
     session: Session = None,
 ):
-
     period_type = period_type if period_type else PeriodType.CURRENT_MONTH.value
 
     balance, incomes, expenses = get_balance(

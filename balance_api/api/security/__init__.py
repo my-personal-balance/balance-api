@@ -1,7 +1,6 @@
 import time
 
 import jwt
-import six
 from cryptography.hazmat.primitives import serialization
 from jwt.exceptions import (
     DecodeError,
@@ -56,12 +55,12 @@ def decode_token(token):
             raise DecodeError
 
         return decoded
-    except DecodeError as e:
-        six.raise_from(Unauthorized, e)
-    except ExpiredSignatureError as e:
-        six.raise_from(Unauthorized, e)
-    except InvalidAlgorithmError as e:
-        six.raise_from(Unauthorized, e)
+    except DecodeError:
+        raise Unauthorized()
+    except ExpiredSignatureError:
+        raise Unauthorized()
+    except InvalidAlgorithmError:
+        raise Unauthorized()
 
 
 def _current_timestamp() -> int:

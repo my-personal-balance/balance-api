@@ -25,7 +25,6 @@ def get_transactions(
     session: Session = None,
 ):
     if report_type:
-
         if ReportType(report_type) == ReportType.group_by_tag:
             items = list_group_by_tag(
                 user_id=user,

@@ -362,8 +362,8 @@ def get_montly_balance(
         else_=0.0,
     )
 
-    year_stmt = extract('year', Transaction.date)
-    month_stmt = extract('month', Transaction.date)
+    year_stmt = extract("year", Transaction.date)
+    month_stmt = extract("month", Transaction.date)
 
     q = (
         session.query(
@@ -386,10 +386,7 @@ def get_montly_balance(
     elif tag_id == 0:
         q = q.filter(Transaction.tag_id == None)
 
-    q = q.group_by(
-        year_stmt,
-        month_stmt
-    ).order_by(year_stmt, month_stmt)
+    q = q.group_by(year_stmt, month_stmt).order_by(year_stmt, month_stmt)
 
     items = []
     for result in q.all():

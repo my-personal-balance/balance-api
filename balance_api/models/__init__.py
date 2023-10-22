@@ -1,10 +1,10 @@
 import enum
 
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.schema import MetaData
+from sqlalchemy.orm import DeclarativeBase
 
-metadata = MetaData()
-Base = declarative_base(metadata=metadata)
+
+class Base(DeclarativeBase):
+    pass
 
 
 class CurrencyType(enum.Enum):

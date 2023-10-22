@@ -266,6 +266,10 @@ components:
           type: integer
           format: int32
           description: Tag id description
+        split_transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SplitTransaction'
 
     Transactions:
       type: object
@@ -274,6 +278,41 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Transaction'
+
+    SplitTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 123
+          description: split transaction id
+        transaction_id:
+          type: integer
+          format: int32
+          example: 123
+          description: transaction id
+        amount:
+          type: number
+          format: float
+          example: 3.15
+          description: The amount of the transaction
+        description:
+          type: string
+          example: "Paypal"
+          description: Transaction description
+        tag_id:
+          type: integer
+          format: int32
+          description: Tag id description
+
+    SplitTransactions:
+      type: object
+      properties:
+        split_transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SplitTransaction'
 
     Balance:
       type: object
@@ -593,6 +632,29 @@ paths:
       responses:
         204:
           description: NO CONTENT
+
+  /transactions/{transaction_id}/split:
+    post:
+      summary: Splits a transaction
+      security:
+        - oauth2:
+            - uid
+      operationId: balance_api.api.split_transactions.split_transaction
+      description: Splits a transaction
+      parameters:
+        - $ref: '#/components/parameters/TransactionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SplitTransaction'
+      responses:
+        201:
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SplitTransactions'
 
 
   /upload:

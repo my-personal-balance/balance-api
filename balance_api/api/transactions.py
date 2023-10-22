@@ -3,6 +3,7 @@ from sqlalchemy.orm.session import Session
 
 from balance_api.api import Resource
 from balance_api.api.accounts import AccountResource
+from balance_api.api.split_transactions import SplitTransactionResource
 from balance_api.api.tags import TagResource
 from balance_api.connection.db import database_operation
 from balance_api.exceptions import ResourceBadRequest
@@ -50,6 +51,12 @@ class TransactionResource(Resource):
                 if transaction.tag
                 else None,
                 "balance": transaction.balance,
+                "split_transactions": [
+                    SplitTransactionResource(split_transaction).serialize()
+                    for split_transaction in transaction.split_transactions
+                ]
+                if transaction.split_transactions
+                else None,
             }
         )
 
@@ -132,10 +139,10 @@ def update_transaction(transaction_id: int, session: Session, **transaction):
 
 
 @database_operation(max_tries=3)
-def batch_updates_transactions(session: Session, **transaction):
-    user_id = dict(transaction)["user"]
-    if "transactions" in transaction["body"]:
-        transactions_data = transaction["body"]["transactions"]
+def batch_updates_transactions(session: Session, **kwargs):
+    user_id = dict(kwargs)["user"]
+    if "transactions" in kwargs["body"]:
+        transactions_data = kwargs["body"]["transactions"]
 
         patched_transactions = [
             patch_transaction(

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from sqlalchemy import (
@@ -7,13 +8,14 @@ from sqlalchemy import (
     ForeignKey,
     DateTime,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import Session
 
 from balance_api.models import Base
 from balance_api.models.users import User
+
+logger = logging.getLogger(__name__)
 
 
 class Tag(Base):
@@ -44,3 +46,12 @@ def find_or_create_account_tag(user_id: int, tag_value: str, session: Session) -
         session.add(tag)
         session.commit()
         return tag
+
+
+def find_tag(user_id: int, tag_id: int, session: Session) -> Tag | None:
+    q = session.query(Tag).where(Tag.user_id == user_id, Tag.id == tag_id)
+    try:
+        return q.one()
+    except NoResultFound:
+        logger.error(f"Tag not found for id {tag_id}")
+        return None

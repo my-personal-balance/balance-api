@@ -1,6 +1,7 @@
 import calendar
 import enum
 from datetime import datetime, date, timedelta
+from typing import List
 
 from sqlalchemy import (
     Column,
@@ -15,13 +16,14 @@ from sqlalchemy import (
 )
 from sqlalchemy import func, case, between
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped
 from sqlalchemy.orm.session import Session
 
 from balance_api.models import Base
 from balance_api.models.accounts import Account
 from balance_api.models.tags import Tag
 from balance_api.models.users import User
+from balance_api.models.split_transactions import SplitTransaction
 
 
 class TransactionType(enum.Enum):
@@ -58,12 +60,14 @@ class Transaction(Base):
     account = relationship(Account)
     tag = relationship(Tag)
 
+    split_transactions: Mapped[List["SplitTransaction"]] = relationship()
+
     balance = 0.0
 
 
 def create_transaction(user_id: int, transaction_resource, session: Session):
     transaction = Transaction(**transaction_resource)
-    transaction.amount = abs(transaction.amount)
+    transaction.amount = abs(transaction.amount) if transaction.amount else 0.0
     session.add(transaction)
     session.commit()
     return transaction
@@ -71,7 +75,7 @@ def create_transaction(user_id: int, transaction_resource, session: Session):
 
 def update_transaction(user_id: int, transaction_resource, session: Session):
     transaction = Transaction(**transaction_resource)
-    transaction.amount = abs(transaction.amount)
+    transaction.amount = abs(transaction.amount) if transaction.amount else 0.0
     transaction.updated_at = datetime.utcnow()
     transaction = session.merge(transaction)
     session.commit()
@@ -110,15 +114,12 @@ def patch_transaction(user_id: int, transaction_resource, session: Session):
             return None
 
 
-def find_transaction(
-    user_id: int, account_id: int, transaction_id: int, session: Session
-):
+def find_transaction(user_id: int, transaction_id: int, session: Session):
     q = (
         session.query(Transaction)
         .join(Account)
         .filter(
             Account.user_id == user_id,
-            Transaction.account_id == account_id,
             Transaction.id == transaction_id,
         )
     )

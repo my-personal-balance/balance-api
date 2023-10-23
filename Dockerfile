@@ -1,4 +1,4 @@
-FROM python:alpine
+FROM python:3.11-alpine
 
 ARG src=balance_api
 ARG work_dir=/home/api
@@ -21,7 +21,7 @@ RUN pip install poetry
 
 # Project initialization:
 RUN poetry config virtualenvs.create false \
-  && poetry install $(test "$YOUR_ENV" = production && echo "--with=production") --no-interaction --no-ansi
+  && poetry install --with=production --no-interaction --no-ansi
 
 ENV PYTHONPATH=${work_dir}
 

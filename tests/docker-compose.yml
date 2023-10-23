@@ -3,13 +3,13 @@ version: "3.9"
 services:
 
   ui:
-    image: julianovidal/balance-ui:1
+    image: julianovidal/balance-ui:latest
     restart: always
     ports:
       - 3000:3000
 
   api:
-    image: julianovidal/balance-api:2
+    image: julianovidal/balance-api:latest
     restart: always
     ports:
       - 5000:5000

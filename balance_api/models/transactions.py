@@ -39,7 +39,11 @@ class PeriodType(enum.Enum):
     CUSTOM = "custom"
     CURRENT_MONTH = "current_month"
     LAST_MONTH = "last_month"
+    CURRENT_YEAR = "current_year"
     LAST_YEAR = "last_year"
+    LAST_3_MONTHS = "last_3_months"
+    LAST_6_MONTHS = "last_6_months"
+    LAST_12_MONTHS = "last_12_months"
 
 
 class Transaction(Base):
@@ -181,22 +185,50 @@ def list_transactions(
 
 
 def get_date_rage(
-    period_type: PeriodType, start_date: str, end_date: str
+    period_type: PeriodType, start_date: str | None, end_date: str | None
 ) -> (date, date):
     if PeriodType(period_type) == PeriodType.CURRENT_MONTH:
         today = date.today()
         month_range = calendar.monthrange(today.year, today.month)
         start_date = date.today().replace(day=1)
         end_date = start_date.replace(day=month_range[1])
-    elif PeriodType(period_type) == PeriodType.LAST_MONTH:
+    if PeriodType(period_type) == PeriodType.LAST_MONTH:
         first = date.today().replace(day=1)
         end_date = first - timedelta(days=1)
-        start_date = end_date.replace(day=1)
+        start_date = go_back_in_time(date.today(), 1)
+    elif PeriodType(period_type) == PeriodType.CURRENT_YEAR:
+        current_year = date.today().year
+        start_date = date.today().replace(day=1, month=1, year=current_year)
+        end_date = date.today()
+    elif PeriodType(period_type) == PeriodType.LAST_YEAR:
+        last_year = date.today().year - 1
+        start_date = date.today().replace(day=1, month=1, year=last_year)
+        end_date = date.today().replace(day=31, month=12, year=last_year)
+    elif PeriodType(period_type) == PeriodType.LAST_3_MONTHS:
+        first = date.today().replace(day=1)
+        end_date = first - timedelta(days=1)
+        start_date = go_back_in_time(date.today(), 3)
+    elif PeriodType(period_type) == PeriodType.LAST_6_MONTHS:
+        first = date.today().replace(day=1)
+        end_date = first - timedelta(days=1)
+        start_date = go_back_in_time(date.today(), 6)
+    elif PeriodType(period_type) == PeriodType.LAST_12_MONTHS:
+        first = date.today().replace(day=1)
+        end_date = first - timedelta(days=1)
+        start_date = go_back_in_time(date.today(), 12)
     elif PeriodType(period_type) == PeriodType.CUSTOM:
         start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
         end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
     return start_date, end_date
+
+
+def go_back_in_time(current_date, months=0):
+    my_date = date(current_date.year, current_date.month, 1)
+    for m in range(months):
+        my_date -= timedelta(days=1)
+        my_date = my_date.replace(day=1)
+    return my_date
 
 
 def get_balance(

@@ -1,3 +1,4 @@
+import logging
 import tempfile
 from datetime import datetime
 from operator import itemgetter
@@ -14,8 +15,10 @@ from balance_api.transactions import (
     MissingAccountMapperException,
 )
 from balance_api.transactions.readers import BaseReader
-from balance_api.transactions.readers.xlsx import ExcelReader
 from balance_api.transactions.readers.csv import CSVReader
+from balance_api.transactions.readers.xlsx import ExcelReader
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionFileLoader:
@@ -94,7 +97,7 @@ class TransactionFileLoader:
         try:
             return itemgetter(key)(record)
         except KeyError as err:
-            print(err)
+            logger.error(err)
             return None
 
     def __parse_date(self, transaction_date):
@@ -104,7 +107,7 @@ class TransactionFileLoader:
                 nd = datetime.strptime(transaction_date, "%d/%m/%Y")
                 return nd.strftime("%Y-%m-%d")
             except Exception as e:
-                print(e)
+                logger.error(e)
                 raise LoadTransactionFileException(
                     detail="Error while parsing transaction file date "
                 )
@@ -126,7 +129,7 @@ class TransactionFileLoader:
             try:
                 self.session.commit()
             except Exception as e:
-                print(e)
+                logger.error(e)
         else:
             raise LoadTransactionFileException(
                 detail="Error while loading transaction file"

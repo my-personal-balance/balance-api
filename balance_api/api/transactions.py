@@ -1,3 +1,5 @@
+import logging
+
 from flask import jsonify
 from sqlalchemy.orm.session import Session
 
@@ -16,6 +18,8 @@ from balance_api.models.transactions import (
     update_transaction as update_t,
 )
 from balance_api.transactions.loader import TransactionFileLoader
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionResource(Resource):
@@ -199,7 +203,7 @@ def upload_transaction(session: Session, **kwargs):
         try:
             transaction_file_loader.process()
         except Exception as e:
-            print(e)
+            logger.error(e)
             raise ResourceBadRequest(detail="Error while loading the transaction file")
 
         return jsonify({"success": True}), 201

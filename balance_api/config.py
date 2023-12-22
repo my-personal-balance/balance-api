@@ -1,8 +1,15 @@
 """
  Application configuration variables
 """
-
+import logging
 import os
+
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    encoding="utf-8",
+    level=logging.INFO,
+)
 
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_USERNAME = os.getenv("DB_USER", "balance")
@@ -19,3 +26,4 @@ SQLALCHEMY_RECORD_QUERIES = (
 
 RSA256_PRIVATE_CERT_PATH = os.getenv("RSA256_CERT_PATH", ".ssh/id_rsa")
 RSA256_PUB_CERT_PATH = os.getenv("RSA256_CERT_PATH", ".ssh/id_rsa.pub")
+

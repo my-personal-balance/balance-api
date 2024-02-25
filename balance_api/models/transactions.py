@@ -283,7 +283,8 @@ def get_balance(
     incomes = result[0] if result[0] else 0.0
     expenses = result[1] if result[1] else 0.0
     transfers = result[2] if result[2] else 0.0
-    balance = incomes - expenses - transfers
+    incomes -= transfers
+    balance = incomes - expenses
 
     return (
         round(balance, 2),

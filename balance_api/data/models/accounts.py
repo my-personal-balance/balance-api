@@ -1,18 +1,14 @@
 import enum
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import (
-    Column,
-    INTEGER,
-    TEXT,
     ForeignKey,
-    Enum,
-    DateTime,
 )
 from sqlalchemy.exc import NoResultFound, DataError
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm.session import Session
 
-from balance_api.models import Base, CurrencyType
+from balance_api.data.models import Base, CurrencyType
 
 
 class AccountType(enum.Enum):
@@ -25,15 +21,20 @@ class AccountType(enum.Enum):
 class Account(Base):
     __tablename__ = "accounts"
 
-    id = Column(INTEGER, primary_key=True, autoincrement=True)
-    alias = Column(TEXT)
-    user_id = Column(
-        INTEGER, ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    alias: Mapped[str]
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    type = Column(Enum(AccountType), nullable=False)
-    currency = Column(Enum(CurrencyType))
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    type: Mapped[AccountType] = mapped_column(nullable=False)
+    currency: Mapped[CurrencyType]
+
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
 
 
 def find_account(user_id: int, account_id: int, session: Session):
@@ -56,7 +57,7 @@ def list_accounts(user_id: int, session: Session):
     ).all()
 
 
-def create_account(account_resource, session: Session):
+def create_account(account_resource, session: Session) -> Account:
     new_account = Account(**account_resource)
     session.add(new_account)
     session.commit()

@@ -1,65 +1,32 @@
-from flask import jsonify
-from sqlalchemy.exc import NoResultFound
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm.session import Session
 
-from balance_api.api import Resource
-from balance_api.connection.db import database_operation
-from balance_api.models.tags import Tag, list_tags as list_t
+from balance_api.data.dtos.tags import Tag
+from balance_api.data.db import database_operation
+from balance_api.data.models.tags import (
+    find_tag as find_t,
+    list_tags as list_t,
+)
+
+bp = Blueprint("tags", __name__)
 
 
-class TagResource(Resource):
-    fields = [
-        "id",
-        "value",
-        "user_id",
-    ]
-
-    protected_fields = [
-        "created_at",
-        "updated_at",
-    ]
-
-    def serialize(self) -> dict:
-        resource = super().serialize()
-        tag: Tag = self.instance
-
-        resource.update(
-            {
-                "id": tag.id,
-                "value": tag.value,
-                "user_id": tag.user_id,
-            }
-        )
-
-        return resource
-
-    @classmethod
-    def deserialize(cls, tag_data: dict, create=True) -> dict:
-        tag_resource = {}
-
-        for field in cls.fields:
-            tag_resource[field] = tag_data.get(field, None)
-        for field in cls.protected_fields:
-            tag_resource.pop(field, None)
-
-        return tag_resource
-
-
+@bp.get("/tags/<tag_id>")
+@jwt_required()
 @database_operation(max_tries=3)
-def find_tag(user: int, tag_id: int, session: Session):
-    q = session.query(Tag).where(
-        Tag.user_id == user,
-        Tag.id == tag_id,
-    )
-    try:
-        tag = q.one()
-    except NoResultFound:
-        return {}, 404
-
-    return jsonify(TagResource(tag).serialize())
+def find_tag(tag_id: int, session: Session):
+    user_id = get_jwt_identity()
+    tag = find_t(user_id, tag_id, session)
+    if tag:
+        return jsonify(Tag.serialize(tag))
+    return {}, 404
 
 
+@bp.get("/tags")
+@jwt_required()
 @database_operation(max_tries=3)
-def list_tags(user: int, session: Session):
-    tags = list_t(user_id=user, session=session)
-    return jsonify({"tags": [TagResource(tag).serialize() for tag in tags]})
+def list_tags(session: Session):
+    user_id = get_jwt_identity()
+    tags = list_t(user_id, session)
+    return jsonify({"tags": Tag.serialize_many(tags)})

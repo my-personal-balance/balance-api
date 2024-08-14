@@ -1,19 +1,15 @@
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import (
-    Column,
-    INTEGER,
-    TEXT,
     ForeignKey,
-    DateTime,
 )
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.orm.session import Session
 
-from balance_api.models import Base
-from balance_api.models.users import User
+from balance_api.data.models import Base
+from balance_api.data.models.users import User
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +17,20 @@ logger = logging.getLogger(__name__)
 class Tag(Base):
     __tablename__ = "tags"
 
-    id = Column(INTEGER, primary_key=True, autoincrement=True)
-    value = Column(TEXT)
-    user_id = Column(
-        INTEGER,
-        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    value: Mapped[str]
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    user = relationship(User)
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+
+    user: Mapped["User"] = relationship(User)
 
 
 def list_tags(user_id: int, session: Session) -> []:

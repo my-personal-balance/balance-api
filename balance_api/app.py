@@ -1,35 +1,54 @@
-import connexion
-from flask_cors import CORS
+from flask import Flask, jsonify
 from flask_compress import Compress
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 
-from balance_api import config
+from balance_api.api import (
+    accounts,
+    reports,
+    split_transactions,
+    tags,
+    transactions,
+    users,
+)
+from balance_api.api.security import oauth
+from balance_api.data.models import Base
 
 
 def create_app():
-    connexion_app = connexion.FlaskApp(
-        __name__,
-        specification_dir="openapi/",
-        options={"propagate_exceptions": True, "swagger_ui": False},
-    )
-
-    connexion_app.add_api("spec.yaml")
-
-    flask_app = connexion_app.app
-    flask_app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI
-    flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    flask_app.config["SQLALCHEMY_RECORD_QUERIES"] = config.SQLALCHEMY_RECORD_QUERIES
-
-    CORS(flask_app)
+    # create and configure the _app
+    _app = Flask(__name__, instance_relative_config=False)
+    _app.config.from_pyfile("config.py", silent=True)
+    CORS(_app)
 
     compress = Compress()
-    compress.init_app(flask_app)
+    compress.init_app(_app)
 
-    return connexion_app
+    _app.register_blueprint(oauth.bp)
+    _app.register_blueprint(accounts.bp)
+    _app.register_blueprint(reports.bp)
+    _app.register_blueprint(split_transactions.bp)
+    _app.register_blueprint(tags.bp)
+    _app.register_blueprint(transactions.bp)
+    _app.register_blueprint(users.bp)
+
+    # a simple page that says hello
+    @_app.route("/hello")
+    def hello():
+        return "Hello, World!"
+
+    return _app
 
 
 app = create_app()
-db = SQLAlchemy(app.app)
+db = SQLAlchemy(app, model_class=Base)
+jwt = JWTManager(app)
+
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error_string):
+    return jsonify({"msg": "Invalid token - {}".format(error_string)}), 401
 
 
 def main():

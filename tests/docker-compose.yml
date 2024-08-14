@@ -1,12 +1,12 @@
 services:
   ui:
     image: julianovidal/balance-ui:latest
-    restart: always
+    restart: on-failure
     ports:
       - 3000:3000
   api:
     image: julianovidal/balance-api:latest
-    restart: always
+    restart: on-failure
     ports:
       - 5000:5000
     environment:

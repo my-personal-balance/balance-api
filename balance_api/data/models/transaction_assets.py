@@ -1,37 +1,38 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import (
-    Column,
-    TEXT,
     ForeignKey,
-    DateTime,
     PrimaryKeyConstraint,
-    INTEGER,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.orm.session import Session
 
 from balance_api.exceptions import AssetNotFoundException
-from balance_api.models import Base
-from balance_api.models.assets import Asset, find_asset
-from balance_api.models.transactions import Transaction
+from balance_api.data.models import Base
+from balance_api.data.models.assets import Asset, find_asset
+from balance_api.data.models.transactions import Transaction
 
 
 class TransactionAsset(Base):
     __tablename__ = "transaction_assets"
     __table_args__ = (PrimaryKeyConstraint("transaction_id", "asset_isin"),)
 
-    transaction_id = Column(
-        INTEGER, ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
+    transaction_id: Mapped[int] = mapped_column(
+        ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    asset_isin = Column(
-        TEXT, ForeignKey("assets.isin", onupdate="CASCADE", ondelete="CASCADE")
+    asset_isin: Mapped[str] = mapped_column(
+        ForeignKey("assets.isin", onupdate="CASCADE", ondelete="CASCADE")
     )
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    transaction = relationship(Transaction)
-    asset = relationship(Asset)
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+
+    transaction: Mapped["Transaction"] = relationship(Transaction)
+    asset: Mapped["Asset"] = relationship(Asset)
 
 
 def create_transaction_asset(

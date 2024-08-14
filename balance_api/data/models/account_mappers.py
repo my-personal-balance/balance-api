@@ -1,20 +1,16 @@
 import enum
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import (
-    Column,
-    DateTime,
     ForeignKey,
-    Enum,
-    INTEGER,
     JSON,
 )
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.orm.session import Session
 
-from balance_api.models import Base
-from balance_api.models.accounts import Account
+from balance_api.data.models import Base
+from balance_api.data.models.accounts import Account
 
 
 class SourceFileType(enum.Enum):
@@ -26,17 +22,21 @@ class SourceFileType(enum.Enum):
 class AccountMapper(Base):
     __tablename__ = "account_mappers"
 
-    id = Column(INTEGER, primary_key=True, autoincrement=True)
-    account_id = Column(
-        INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    account_id: Mapped[int] = mapped_column(
+        ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    source_file_type = Column(Enum(SourceFileType))
-    source_file_schema = Column(JSON)
+    source_file_type: Mapped[SourceFileType]
+    source_file_schema: Mapped[dict] = mapped_column(JSON)
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
 
-    account = relationship(Account)
+    account: Mapped["Account"] = relationship(Account)
 
 
 def find_account_mapper(

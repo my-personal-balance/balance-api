@@ -10,8 +10,7 @@ from sqlalchemy import FLOAT
 from sqlalchemy import TEXT, Column, DateTime, INTEGER, ForeignKey
 from sqlalchemy.engine.reflection import Inspector
 
-from balance_api.models.transactions import Transaction
-from balance_api.models.split_transactions import SplitTransaction
+from balance_api.data.models import SplitTransaction
 
 
 # revision identifiers, used by Alembic.

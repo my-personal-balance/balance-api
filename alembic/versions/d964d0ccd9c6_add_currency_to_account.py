@@ -8,7 +8,7 @@ Create Date: 2021-08-28 11:09:28.920168
 from alembic import op
 import sqlalchemy as sa
 
-from balance_api.models import CurrencyType
+from balance_api.data.models import CurrencyType
 
 # revision identifiers, used by Alembic.
 revision = "d964d0ccd9c6"

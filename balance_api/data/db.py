@@ -48,7 +48,7 @@ def database_operation(**backoff_kwargs):
     return decorator
 
 
-def should_giveup_retrying_database_operation(exc):
+def should_give_up_retrying_database_operation(exc):
     return not exc.connection_invalidated
 
 
@@ -57,6 +57,6 @@ def retry_on_database_error(**kwargs):
     return backoff.on_exception(
         backoff.expo,
         OperationalError,
-        giveup=should_giveup_retrying_database_operation,
+        giveup=should_give_up_retrying_database_operation,
         **kwargs
     )

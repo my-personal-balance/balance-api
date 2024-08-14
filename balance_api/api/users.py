@@ -1,67 +1,28 @@
-from flask import jsonify
-from sqlalchemy.exc import NoResultFound
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy.orm.session import Session
 
-from balance_api.api import Resource
-from balance_api.connection.db import database_operation
-from balance_api.models.users import User
+from balance_api.data.db import database_operation
+from balance_api.data.dtos.users import User
+from balance_api.data.models.users import find_user, create_user
+
+bp = Blueprint("users", __name__)
 
 
-class UserResource(Resource):
-    fields = [
-        "id",
-        "name",
-        "email",
-        "currency",
-    ]
-
-    protected_fields = [
-        "created_at",
-        "updated_at",
-    ]
-
-    def serialize(self) -> dict:
-        resource = super().serialize()
-        user: User = self.instance
-
-        resource.update(
-            {
-                "id": user.id,
-                "name": user.name,
-                "email": user.email,
-                "currency": user.currency,
-            }
-        )
-
-        return resource
-
-    @classmethod
-    def deserialize(cls, user_data: dict, create=True) -> dict:
-        user_resource = {}
-
-        for field in cls.fields:
-            user_resource[field] = user_data.get(field, None)
-        for field in cls.protected_fields:
-            user_resource.pop(field, None)
-
-        return user_resource
-
-
+@bp.get("/users")
+@jwt_required()
 @database_operation(max_tries=3)
-def me(user: int, session: Session):
-    q = session.query(User).filter(User.id == user)
-    try:
-        user_obj = q.one()
-        return jsonify(UserResource(user_obj).serialize())
-    except NoResultFound:
-        return None
+def me(session: Session):
+    user_id = get_jwt_identity()
+    user = find_user(user_id, session)
+    if user:
+        return jsonify(User.serialize(user)), 200
 
 
+@bp.post("/users")
+@jwt_required()
 @database_operation(max_tries=3)
-def create_user(session: Session, **user):
-    user_resource = UserResource.deserialize(user["body"], create=True)
-    new_user = User(**user_resource)
-    session.add(new_user)
-    session.commit()
-
-    return jsonify(UserResource(new_user).serialize()), 201
+def create_users(session: Session):
+    user_resource = request.json
+    user = create_user(user_resource, session)
+    return jsonify(User.serialize(user)), 201

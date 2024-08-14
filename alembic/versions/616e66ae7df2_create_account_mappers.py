@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.engine.reflection import Inspector
 
-from balance_api.models.account_mappers import AccountMapper, SourceFileType
+from balance_api.data.models import AccountMapper, SourceFileType
 
 # revision identifiers, used by Alembic.
 revision = "616e66ae7df2"

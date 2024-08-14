@@ -1,67 +1,26 @@
-import uuid
-
-from flask import jsonify
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm.session import Session
 
-from balance_api.api import Resource
-from balance_api.connection.db import database_operation
-from balance_api.models.accounts import (
-    Account,
+from balance_api.data.db import database_operation
+from balance_api.data.dtos.accounts import Account
+from balance_api.data.models.accounts import (
     find_account as find_a,
     list_accounts as list_a,
     create_account as create_a,
     delete_account as delete_a,
 )
-from balance_api.models.transactions import get_balance, PeriodType
+from balance_api.data.models.transactions import get_balance, PeriodType
+
+bp = Blueprint("accounts", __name__)
 
 
-class AccountResource(Resource):
-    fields = [
-        "id",
-        "alias",
-        "user_id",
-        "type",
-        "currency",
-    ]
-
-    protected_fields = [
-        "created_at",
-        "updated_at",
-    ]
-
-    def serialize(self, **kwargs) -> dict:
-        resource = super().serialize()
-        account: Account = self.instance
-
-        resource.update(
-            {
-                "id": account.id,
-                "alias": account.alias,
-                "user_id": account.user_id,
-                "type": account.type.name if account.type else None,
-                "currency": account.currency.name if account.currency else None,
-            }
-        )
-
-        resource.update(**kwargs)
-
-        return resource
-
-    @classmethod
-    def deserialize(cls, account_data: dict, create=True) -> dict:
-        account_resource = {}
-
-        for field in cls.fields:
-            account_resource[field] = account_data.get(field, None)
-        for field in cls.protected_fields:
-            account_resource.pop(field, None)
-
-        return account_resource
-
-
+@bp.get("/accounts/<account_id>")
+@jwt_required()
 @database_operation(max_tries=3)
-def find_account(user: int, account_id: uuid, session: Session):
-    account = find_a(user, account_id, session)
+def find_account(account_id: int, session: Session):
+    user_id = get_jwt_identity()
+    account = find_a(user_id, int(account_id), session)
     if not account:
         return {}, 404
 
@@ -69,10 +28,13 @@ def find_account(user: int, account_id: uuid, session: Session):
     return jsonify(account_resource)
 
 
+@bp.get("/accounts")
+@jwt_required()
 @database_operation(max_tries=3)
-def list_accounts(user: int, session: Session):
+def list_accounts(session: Session):
+    user_id = get_jwt_identity()
     accounts = []
-    for account in list_a(user, session):
+    for account in list_a(user_id, session):
         account_resource = get_account_financial_data(account, session)
         accounts.append(account_resource)
 
@@ -84,7 +46,8 @@ def get_account_financial_data(account: Account, session: Session) -> dict:
         user_id=account.user_id, account_id=account.id, session=session
     )
 
-    account = AccountResource(account).serialize(
+    return Account.serialize(
+        account,
         **{
             "balance": balance,
             "incomes": incomes,
@@ -92,38 +55,42 @@ def get_account_financial_data(account: Account, session: Session) -> dict:
         }
     )
 
-    return account
 
-
+@bp.post("/accounts")
+@jwt_required()
 @database_operation(max_tries=3)
-def create_account(user: int, session: Session, **kwargs):
-    account_resource = AccountResource.deserialize(kwargs["body"], create=True)
-    account_resource["user_id"] = user
+def create_account(session: Session):
+    user_id = get_jwt_identity()
+    account_resource = request.json | {"user_id": user_id}
     new_account = create_a(account_resource, session)
-    return jsonify(AccountResource(new_account).serialize()), 201
+    return jsonify(Account.serialize(new_account)), 201
 
 
+@bp.delete("/accounts/<account_id>")
+@jwt_required()
 @database_operation(max_tries=3)
-def delete_account(user: int, account_id: int, session: Session):
-    delete_a(user, account_id, session)
-    return 204
+def delete_account(account_id: int, session: Session):
+    user_id = get_jwt_identity()
+    delete_a(user_id, int(account_id), session)
+    return {}, 204
 
 
+@bp.get("/balance")
+@jwt_required()
 @database_operation(max_tries=3)
-def get_account_balance(
-    user: int,
-    account_id: int = None,
-    tag_id: int = None,
-    period_type: int = None,
-    period_offset: int = None,
-    start_date: str = None,
-    end_date: str = None,
-    session: Session = None,
-):
+def get_account_balance(session: Session):
+    user_id = get_jwt_identity()
+    account_id = request.args.get("account_id", type=int)
+    tag_id = request.args.get("tag_id", type=int)
+    period_type = request.args.get("period_type", type=PeriodType)
+    period_offset = request.args.get("period_offset", type=int)
+    start_date = request.args.get("start_date", type=str)
+    end_date = request.args.get("end_date", type=str)
+
     period_type = period_type if period_type else PeriodType.CURRENT_MONTH.value
 
     balance, incomes, expenses = get_balance(
-        user,
+        user_id,
         account_id,
         tag_id,
         period_type,

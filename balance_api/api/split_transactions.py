@@ -1,82 +1,42 @@
-from flask import jsonify
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy.orm.session import Session
-
-from balance_api.api import Resource
-from balance_api.connection.db import database_operation
-from balance_api.models.split_transactions import (
-    SplitTransaction,
+from balance_api.data.db import database_operation
+from balance_api.data.models.split_transactions import (
     create_split_transactions,
     list_split_transactions,
 )
+from balance_api.data.dtos.split_transactions import SplitTransaction
+
+bp = Blueprint("split_transactions", __name__)
 
 
-class SplitTransactionResource(Resource):
-    fields = ["id", "transaction_id", "amount", "description", "tag_id"]
-
-    protected_fields = [
-        "created_at",
-        "updated_at",
-    ]
-
-    def serialize(self) -> dict:
-        resource = super().serialize()
-        split_trans: SplitTransaction = self.instance
-
-        resource.update(
-            {
-                "id": split_trans.id,
-                "transaction_id": split_trans.transaction_id,
-                "amount": split_trans.amount,
-                "description": split_trans.description,
-                "tag_id": split_trans.tag_id,
-            }
-        )
-
-        return resource
-
-    @classmethod
-    def deserialize(cls, split_transaction_data: dict, create=True) -> dict:
-        split_transaction_resource = {}
-
-        for field in cls.fields:
-            split_transaction_resource[field] = split_transaction_data.get(field, None)
-        for field in cls.protected_fields:
-            split_transaction_resource.pop(field, None)
-
-        return split_transaction_resource
-
-
+@bp.post("/transactions/<transaction_id>/split")
+@jwt_required()
 @database_operation(max_tries=3)
-def split_transaction(transaction_id: int, session: Session, **kwargs):
-    user_id = dict(kwargs)["user"]
+def split_transaction(transaction_id: int, session: Session):
+    user_id = get_jwt_identity()
+    split_transactions_data = request.json
 
-    if "transactions" in kwargs["body"]:
-        transactions_data = kwargs["body"]["transactions"]
-
-        split_transactions = [
-            SplitTransactionResource.deserialize(transaction_data, create=True)
-            for transaction_data in transactions_data
-        ]
-
+    if "transactions" in split_transactions_data:
         create_split_transactions(
-            user_id=user_id,
-            transaction_id=transaction_id,
-            split_transactions=split_transactions,
+            user_id=int(user_id),
+            transaction_id=int(transaction_id),
+            split_transactions=split_transactions_data["transactions"],
             session=session,
         )
 
-        split_transactions = list_split_transactions(
-            user_id=user_id, transaction_id=transaction_id, session=session
-        )
+    split_transactions = list_split_transactions(
+        user_id=int(user_id), transaction_id=int(transaction_id), session=session
+    )
 
-        return (
-            jsonify(
-                {
-                    "split_transactions": [
-                        SplitTransactionResource(transaction).serialize()
-                        for transaction in split_transactions
-                    ],
-                }
-            ),
-            200,
-        )
+    return (
+        jsonify(
+            {
+                "split_transactions": SplitTransaction.serialize_many(
+                    split_transactions
+                ),
+            }
+        ),
+        200,
+    )

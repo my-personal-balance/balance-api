@@ -9,7 +9,7 @@ from alembic import op
 from sqlalchemy import TEXT, Column, INTEGER, ForeignKey, DateTime
 from sqlalchemy.engine.reflection import Inspector
 
-from balance_api.models.tags import Tag
+from balance_api.data.models import Tag
 
 # revision identifiers, used by Alembic.
 revision = "df76125d06a9"

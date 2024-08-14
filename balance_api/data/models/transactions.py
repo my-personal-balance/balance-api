@@ -1,29 +1,23 @@
 import calendar
 import enum
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, UTC
 from typing import List
 
 from sqlalchemy import (
-    Column,
-    INTEGER,
-    TEXT,
     ForeignKey,
-    Enum,
-    DATE,
-    FLOAT,
-    DateTime,
     extract,
 )
 from sqlalchemy import func, case, between
+from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.orm.session import Session
 
-from balance_api.models import Base
-from balance_api.models.accounts import Account
-from balance_api.models.tags import Tag
-from balance_api.models.users import User
-from balance_api.models.split_transactions import SplitTransaction
+from balance_api.data.models import Base
+from balance_api.data.models.accounts import Account
+from balance_api.data.models.split_transactions import SplitTransaction
+from balance_api.data.models.tags import Tag
+from balance_api.data.models.users import User
 
 
 class TransactionType(enum.Enum):
@@ -49,27 +43,32 @@ class PeriodType(enum.Enum):
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id = Column(INTEGER, primary_key=True, autoincrement=True)
-    date = Column(DATE)
-    transaction_type = Column("type", Enum(TransactionType))
-    amount = Column(FLOAT)
-    account_id = Column(
-        INTEGER, ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    date: Mapped[date]
+    transaction_type: Mapped[TransactionType] = mapped_column("type")
+    amount: Mapped[float]
+    account_id: Mapped[int] = mapped_column(
+        ForeignKey("accounts.id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    description = Column(TEXT)
-    tag_id = Column(INTEGER, ForeignKey("tags.id", onupdate="CASCADE"))
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    description: Mapped[str]
+    tag_id: Mapped[int] = mapped_column(ForeignKey("tags.id", onupdate="CASCADE"))
 
-    account = relationship(Account)
-    tag = relationship(Tag)
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+
+    account: Mapped["Account"] = relationship(Account)
+    tag: Mapped["Tag"] = relationship(Tag)
 
     split_transactions: Mapped[List["SplitTransaction"]] = relationship()
 
     balance = 0.0
 
 
-def create_transaction(user_id: int, transaction_resource, session: Session):
+def create_transaction(user_id: int, transaction_resource: dict, session: Session):
     transaction = Transaction(**transaction_resource)
     transaction.amount = abs(transaction.amount) if transaction.amount else 0.0
     session.add(transaction)
@@ -77,26 +76,20 @@ def create_transaction(user_id: int, transaction_resource, session: Session):
     return transaction
 
 
-def update_transaction(user_id: int, transaction_resource, session: Session):
+def update_transaction(user_id: int, transaction_resource: dict, session: Session):
     transaction = Transaction(**transaction_resource)
     transaction.amount = abs(transaction.amount) if transaction.amount else 0.0
-    transaction.updated_at = datetime.utcnow()
+    transaction.updated_at = datetime.now(UTC)
     transaction = session.merge(transaction)
     session.commit()
     return transaction
 
 
-def patch_transaction(user_id: int, transaction_resource, session: Session):
+def patch_transaction(user_id: int, transaction_resource: dict, session: Session):
     transaction_data = Transaction(**transaction_resource)
     if transaction_data.id:
-        q = session.query(Transaction).filter(
-            Transaction.id == transaction_data.id,
-        )
-        try:
-            transaction = q.one()
-            if not transaction and transaction.account.user_id == user_id:
-                raise NoResultFound
-
+        transaction = find_transaction(user_id, transaction_data.id, session)
+        if transaction:
             if transaction_data.date:
                 transaction.date = transaction_data.date
             if transaction_data.transaction_type:
@@ -108,27 +101,24 @@ def patch_transaction(user_id: int, transaction_resource, session: Session):
             if transaction_data.tag_id:
                 transaction.tag_id = transaction_data.tag_id
 
-            transaction.updated_at = datetime.utcnow()
+            transaction.updated_at = datetime.now(UTC)
             transaction = session.merge(transaction)
             session.commit()
-
             return transaction
 
-        except NoResultFound:
-            return None
+    return None
 
 
 def find_transaction(user_id: int, transaction_id: int, session: Session):
-    q = (
-        session.query(Transaction)
+    stmt = (
+        select(Transaction)
         .join(Account)
-        .filter(
-            Account.user_id == user_id,
-            Transaction.id == transaction_id,
-        )
+        .where(Account.user_id == user_id)
+        .where(Transaction.id == transaction_id)
     )
+
     try:
-        return q.one()
+        return session.scalars(stmt).one()
     except NoResultFound:
         return None
 
@@ -137,7 +127,7 @@ def list_transactions(
     user_id: int,
     account_id: int = None,
     tag_id: int = None,
-    period_type: int = None,
+    period_type: PeriodType = None,
     period_offset: int = None,
     start_date: str = None,
     end_date: str = None,
@@ -294,12 +284,7 @@ def get_balance(
 
 
 def delete_transaction(user_id: int, transaction_id: int, session: Session):
-    q = (
-        session.query(Transaction)
-        .join(Account)
-        .where(Transaction.id == transaction_id, Account.user_id == user_id)
-    )
-    transaction = q.one()
+    transaction = find_transaction(user_id, transaction_id, session)
     if transaction:
         session.delete(transaction)
         session.commit()
@@ -309,10 +294,10 @@ def list_group_by_tag(
     user_id: int,
     account_id: int,
     tag_id: int,
-    period_type: int,
+    period_type: PeriodType,
     period_offset: int,
-    start_date: str,
-    end_date: str,
+    start_date: str | None,
+    end_date: str | None,
     session: Session,
 ):
     income = case(
@@ -349,9 +334,7 @@ def list_group_by_tag(
         q = q.filter(Tag.id == None)
 
     if period_type:
-        start_date, end_date = get_date_rage(
-            PeriodType(period_type), start_date, end_date
-        )
+        start_date, end_date = get_date_rage(period_type, start_date, end_date)
         q = q.filter(between(Transaction.date, start_date, end_date))
 
     q = q.group_by(

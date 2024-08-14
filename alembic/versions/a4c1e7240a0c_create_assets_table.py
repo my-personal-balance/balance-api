@@ -10,7 +10,7 @@ from sqlalchemy import FLOAT
 from sqlalchemy import TEXT, Column, DateTime
 from sqlalchemy.engine.reflection import Inspector
 
-from balance_api.models.assets import Asset
+from balance_api.data.models.assets import Asset
 
 # revision identifiers, used by Alembic.
 revision = "a4c1e7240a0c"

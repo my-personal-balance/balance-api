@@ -1,6 +1,6 @@
 from datetime import date
 
-from balance_api.models.transactions import get_date_rage, PeriodType, go_back_in_time
+from balance_api.data.models import get_date_rage, PeriodType, go_back_in_time
 
 
 def test_models_transactions_get_date_rage_current_month():

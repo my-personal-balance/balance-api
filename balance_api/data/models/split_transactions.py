@@ -1,30 +1,31 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import (
-    Column,
-    INTEGER,
-    TEXT,
     ForeignKey,
-    FLOAT,
-    DateTime,
 )
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm.session import Session
 
-from balance_api.models import Base
+from balance_api.data.models import Base
 
 
 class SplitTransaction(Base):
     __tablename__ = "split_transactions"
 
-    id = Column(INTEGER, primary_key=True, autoincrement=True)
-    transaction_id = Column(
-        INTEGER, ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    transaction_id: Mapped[int] = mapped_column(
+        ForeignKey("transactions.id", onupdate="CASCADE", ondelete="CASCADE")
     )
-    amount = Column(FLOAT)
-    description = Column(TEXT)
-    tag_id = Column(INTEGER, ForeignKey("tags.id", onupdate="CASCADE"))
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    amount: Mapped[float]
+    description: Mapped[str]
+    tag_id: Mapped[int] = mapped_column(ForeignKey("tags.id"), onupdate="CASCADE")
+
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.now(UTC), nullable=False
+    )
 
 
 def create_split_transactions(
@@ -40,7 +41,7 @@ def create_split_transactions(
         session.add(split_transaction)
 
     session.commit()
-    return split_transactions
+    return list_split_transactions(user_id, transaction_id, session)
 
 
 def delete_split_transactions(transaction_id: int, session: Session):

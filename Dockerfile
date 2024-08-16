@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM python:3.12-alpine
 
 ARG src=balance_api
 ARG work_dir=/home/api

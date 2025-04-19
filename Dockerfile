@@ -14,7 +14,6 @@ COPY uwsgi.ini            ${work_dir}/
 COPY poetry.lock          ${work_dir}/
 COPY pyproject.toml       ${work_dir}/
 COPY README.md            ${work_dir}/
-COPY .ssh                 ${work_dir}/.ssh
 
 RUN apk add --no-cache g++ linux-headers libffi-dev
 RUN pip install poetry

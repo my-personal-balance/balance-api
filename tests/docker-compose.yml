@@ -14,6 +14,8 @@ services:
       POSTGRES_DB: balance
       POSTGRES_USER: balance
       POSTGRES_PASSWORD: passw0rd
+    volumes:
+      - ../.ssh/:/home/api/.ssh
   db:
     image: postgres:15
     restart: on-failure

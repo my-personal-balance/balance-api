@@ -17,7 +17,7 @@ bp = Blueprint("tags", __name__)
 @database_operation(max_tries=3)
 def find_tag(tag_id: int, session: Session):
     user_id = get_jwt_identity()
-    tag = find_t(user_id, tag_id, session)
+    tag = find_t(int(user_id), tag_id, session)
     if tag:
         return jsonify(Tag.serialize(tag))
     return {}, 404
@@ -28,5 +28,5 @@ def find_tag(tag_id: int, session: Session):
 @database_operation(max_tries=3)
 def list_tags(session: Session):
     user_id = get_jwt_identity()
-    tags = list_t(user_id, session)
+    tags = list_t(int(user_id), session)
     return jsonify({"tags": Tag.serialize_many(tags)})

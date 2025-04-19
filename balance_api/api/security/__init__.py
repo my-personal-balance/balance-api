@@ -4,5 +4,5 @@ from balance_api.data.models.users import User
 
 
 def generate_token(user: User):
-    access_token = create_access_token(user.id)
+    access_token = create_access_token(str(user.id))
     return access_token

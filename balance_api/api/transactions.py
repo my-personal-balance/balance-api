@@ -36,7 +36,7 @@ def list_transactions(session: Session):
     max_results = None if period_type else 100
 
     transactions = list_t(
-        user_id,
+        int(user_id),
         account_id,
         tag_id,
         period_type,
@@ -60,7 +60,7 @@ def list_transactions(session: Session):
 def create_transaction(session: Session):
     user_id = get_jwt_identity()
     transaction_data = request.json
-    new_transaction = create_t(user_id, transaction_data, session)
+    new_transaction = create_t(int(user_id), transaction_data, session)
     return jsonify(Transaction.serialize(new_transaction)), 201
 
 
@@ -71,7 +71,7 @@ def update_transaction(transaction_id: int, session: Session):
     user_id = get_jwt_identity()
     transaction_data = request.json
     transaction_data["id"] = transaction_id
-    updated_transaction = update_t(user_id, transaction_data, session)
+    updated_transaction = update_t(int(user_id), transaction_data, session)
     return jsonify(Transaction.serialize(updated_transaction)), 200
 
 
@@ -84,7 +84,7 @@ def batch_updates_transactions(session: Session):
     transactions_data = data.get("transactions", None)
     if transactions_data:
         patched_transactions = [
-            patch_transaction(user_id, transaction_data, session)
+            patch_transaction(int(user_id), transaction_data, session)
             for transaction_data in transactions_data
         ]
 
@@ -101,7 +101,7 @@ def batch_updates_transactions(session: Session):
 @database_operation(max_tries=3)
 def delete_transaction(transaction_id: int, session: Session):
     user_id = get_jwt_identity()
-    delete_t(user_id, int(transaction_id), session)
+    delete_t(int(user_id), int(transaction_id), session)
     return {}, 204
 
 
@@ -122,7 +122,7 @@ def upload_transaction(session: Session):
     file = transaction["file"]
     transaction_file_loader = TransactionFileLoader(
         file=file,
-        user_id=user_id,
+        user_id=int(user_id),
         account_id=int(account_id),
         session=session,
     )

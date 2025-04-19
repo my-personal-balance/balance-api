@@ -14,7 +14,7 @@ bp = Blueprint("users", __name__)
 @database_operation(max_tries=3)
 def me(session: Session):
     user_id = get_jwt_identity()
-    user = find_user(user_id, session)
+    user = find_user(int(user_id), session)
     if user:
         return jsonify(User.serialize(user)), 200
 

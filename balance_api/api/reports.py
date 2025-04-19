@@ -35,7 +35,7 @@ def get_transactions(session: Session = None):
     if report_type:
         if ReportType(report_type) == ReportType.group_by_tag:
             items = list_group_by_tag(
-                user_id=user_id,
+                user_id=int(user_id),
                 account_id=account_id,
                 tag_id=tag_id,
                 period_type=period_type,
@@ -60,7 +60,7 @@ def get_trends(session: Session = None):
     tag_id = request.args.get("tag_id", type=int)
 
     items = get_montly_balance(
-        user_id=user_id,
+        user_id=int(user_id),
         account_id=account_id,
         tag_id=tag_id,
         session=session,

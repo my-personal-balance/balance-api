@@ -20,7 +20,7 @@ bp = Blueprint("accounts", __name__)
 @database_operation(max_tries=3)
 def find_account(account_id: int, session: Session):
     user_id = get_jwt_identity()
-    account = find_a(user_id, int(account_id), session)
+    account = find_a(int(user_id), int(account_id), session)
     if not account:
         return {}, 404
 
@@ -34,7 +34,7 @@ def find_account(account_id: int, session: Session):
 def list_accounts(session: Session):
     user_id = get_jwt_identity()
     accounts = []
-    for account in list_a(user_id, session):
+    for account in list_a(int(user_id), session):
         account_resource = get_account_financial_data(account, session)
         accounts.append(account_resource)
 
@@ -61,7 +61,7 @@ def get_account_financial_data(account: Account, session: Session) -> dict:
 @database_operation(max_tries=3)
 def create_account(session: Session):
     user_id = get_jwt_identity()
-    account_resource = request.json | {"user_id": user_id}
+    account_resource = request.json | {"user_id": int(user_id)}
     new_account = create_a(account_resource, session)
     return jsonify(Account.serialize(new_account)), 201
 
@@ -71,7 +71,7 @@ def create_account(session: Session):
 @database_operation(max_tries=3)
 def delete_account(account_id: int, session: Session):
     user_id = get_jwt_identity()
-    delete_a(user_id, int(account_id), session)
+    delete_a(int(user_id), int(account_id), session)
     return {}, 204
 
 
@@ -90,7 +90,7 @@ def get_account_balance(session: Session):
     period_type = period_type if period_type else PeriodType.CURRENT_MONTH.value
 
     balance, incomes, expenses = get_balance(
-        user_id,
+        int(user_id),
         account_id,
         tag_id,
         period_type,

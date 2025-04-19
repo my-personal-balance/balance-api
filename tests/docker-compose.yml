@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: passw0rd
   db:
     image: postgres:15
-    restart: always
+    restart: on-failure
     ports:
       - 5432:5432
     environment:

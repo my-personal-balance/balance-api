@@ -19,21 +19,8 @@ jobs:
           # Crucial: semantic-release needs the full git history to determine the version
           fetch-depth: 0
 
-      - name: Setup UV
-        uses: asdf-vm/actions/install@v4
-
-      - name: Install semantic-release and plugins
-        run: |
-          uv sync --no-dev --locked --group release
-
-      - name: Build | Build next version artifacts
-        id: version
-        env:
-          GH_TOKEN: "none"
-        run: uv run semantic-release -v version --no-commit --no-tag
-
       - name: Run semantic-release
-        id: semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uv run semantic-release publish
+        uses: python-semantic-release/python-semantic-release@v10.1.0
+        with:
+          changelog: false
+          tag: true

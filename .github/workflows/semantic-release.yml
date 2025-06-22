@@ -19,20 +19,21 @@ jobs:
           # Crucial: semantic-release needs the full git history to determine the version
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
+      - name: Setup UV
+        uses: asdf-vm/actions/install@v4
 
       - name: Install semantic-release and plugins
         run: |
-          npm install -g semantic-release \
-          @semantic-release/github \
-          @semantic-release/git \
-          @semantic-release/release-notes-generator
+          uv sync --no-dev --locked --group release
+
+      - name: Build | Build next version artifacts
+        id: version
+        env:
+          GH_TOKEN: "none"
+        run: uv run semantic-release -v version --no-commit --no-tag
 
       - name: Run semantic-release
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: uv run semantic-release publish

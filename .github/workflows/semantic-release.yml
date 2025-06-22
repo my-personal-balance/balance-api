@@ -1,0 +1,43 @@
+name: Semantic Release
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # To create tags and releases
+      issues: write        # To post comments on issues/PRs
+      pull-requests: write # To post comments on issues/PRs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Crucial: semantic-release needs the full git history to determine the version
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install semantic-release and plugins
+        run: |
+          pnpm install --no-lockfile semantic-release \
+          @semantic-release/github \
+          @semantic-release/git \
+          @semantic-release/release-notes-generator
+
+      - name: Run semantic-release
+        id: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release

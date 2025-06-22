@@ -1,10 +1,12 @@
 name: Docker Image CI
 
 on:
-  workflow_run:
-    workflows: ["Semantic Release"]
-    types:
-      - completed
+  repository_dispatch:
+    types: [semantic-release]
+#  workflow_run:
+#    workflows: ["Semantic Release"]
+#    types:
+#      - completed
 
 jobs:
 

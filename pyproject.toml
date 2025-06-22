@@ -1,6 +1,6 @@
 [project]
 name = "balance-api"
-version = "0.1.0"
+version = "1.0.0"
 description = "My Personal Balance API"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -31,3 +31,6 @@ release = [
 [tool.semantic_release]
 commit_parser = "conventional"
 version_toml = ["pyproject.toml:project.version"]
+
+[tool.semantic_release.branches.main]
+match = "(main|master|feat/github-actions)"

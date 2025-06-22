@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write      # To create tags and releases
+      id-token: write
       issues: write        # To post comments on issues/PRs
       pull-requests: write # To post comments on issues/PRs
 
@@ -23,4 +24,5 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v10.1.0
         with:
           changelog: false
+          commit: false
           tag: true

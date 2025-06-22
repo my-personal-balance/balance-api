@@ -45,9 +45,11 @@ app = create_app()
 db = SQLAlchemy(app, model_class=Base)
 jwt = JWTManager(app)
 
+
 @jwt.user_identity_loader
 def user_identity_lookup(user_id):
     return str(user_id)
+
 
 @jwt.invalid_token_loader
 def invalid_token_callback(error_string):

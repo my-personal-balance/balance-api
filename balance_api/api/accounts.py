@@ -52,7 +52,7 @@ def get_account_financial_data(account: Account, session: Session) -> dict:
             "balance": balance,
             "incomes": incomes,
             "expenses": expenses,
-        }
+        },
     )
 
 

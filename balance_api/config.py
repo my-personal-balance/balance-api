@@ -1,5 +1,5 @@
 """
- Application configuration variables
+Application configuration variables
 """
 
 import logging

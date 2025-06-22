@@ -1,13 +1,15 @@
 from datetime import date
 
-from balance_api.data.models import get_date_rage, PeriodType, go_back_in_time
+from balance_api.data.models.transactions import (
+    get_date_rage,
+    PeriodType,
+    go_back_in_time,
+)
 
 
 def test_models_transactions_get_date_rage_current_month():
     start_date, end_date = get_date_rage(
-        period_type=PeriodType.CURRENT_MONTH,
-        start_date=None,
-        end_date=None
+        period_type=PeriodType.CURRENT_MONTH, start_date=None, end_date=None
     )
 
     print(f"Start date: {start_date} - End date: {end_date}")
@@ -15,9 +17,7 @@ def test_models_transactions_get_date_rage_current_month():
 
 def test_models_transactions_get_date_rage_last_month():
     start_date, end_date = get_date_rage(
-        period_type=PeriodType.LAST_MONTH,
-        start_date=None,
-        end_date=None
+        period_type=PeriodType.LAST_MONTH, start_date=None, end_date=None
     )
 
     print(f"Start date: {start_date} - End date: {end_date}")
@@ -25,9 +25,7 @@ def test_models_transactions_get_date_rage_last_month():
 
 def test_models_transactions_get_date_rage_current_year():
     start_date, end_date = get_date_rage(
-        period_type=PeriodType.CURRENT_YEAR,
-        start_date=None,
-        end_date=None
+        period_type=PeriodType.CURRENT_YEAR, start_date=None, end_date=None
     )
 
     print(f"Start date: {start_date} - End date: {end_date}")
@@ -35,9 +33,7 @@ def test_models_transactions_get_date_rage_current_year():
 
 def test_models_transactions_get_date_rage_last_year():
     start_date, end_date = get_date_rage(
-        period_type=PeriodType.LAST_YEAR,
-        start_date=None,
-        end_date=None
+        period_type=PeriodType.LAST_YEAR, start_date=None, end_date=None
     )
 
     print(f"Start date: {start_date} - End date: {end_date}")
@@ -45,9 +41,7 @@ def test_models_transactions_get_date_rage_last_year():
 
 def test_models_transactions_get_date_rage_last_3_months():
     start_date, end_date = get_date_rage(
-        period_type=PeriodType.LAST_3_MONTHS,
-        start_date=None,
-        end_date=None
+        period_type=PeriodType.LAST_3_MONTHS, start_date=None, end_date=None
     )
 
     print(f"Start date: {start_date} - End date: {end_date}")
@@ -55,9 +49,7 @@ def test_models_transactions_get_date_rage_last_3_months():
 
 def test_models_transactions_get_date_rage_last_6_months():
     start_date, end_date = get_date_rage(
-        period_type=PeriodType.LAST_6_MONTHS,
-        start_date=None,
-        end_date=None
+        period_type=PeriodType.LAST_6_MONTHS, start_date=None, end_date=None
     )
 
     print(f"Start date: {start_date} - End date: {end_date}")
@@ -65,9 +57,7 @@ def test_models_transactions_get_date_rage_last_6_months():
 
 def test_models_transactions_get_date_rage_last_12_months():
     start_date, end_date = get_date_rage(
-        period_type=PeriodType.LAST_12_MONTHS,
-        start_date=None,
-        end_date=None
+        period_type=PeriodType.LAST_12_MONTHS, start_date=None, end_date=None
     )
 
     print(f"Start date: {start_date} - End date: {end_date}")

@@ -58,5 +58,5 @@ def retry_on_database_error(**kwargs):
         backoff.expo,
         OperationalError,
         giveup=should_give_up_retrying_database_operation,
-        **kwargs
+        **kwargs,
     )

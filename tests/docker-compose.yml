@@ -1,14 +1,14 @@
 services:
   ui:
-    image: julianovidal/balance-ui:latest
+    image: docker.io/julianovidal/balance-ui:latest
     restart: on-failure
     ports:
-      - 3000:3000
+      - "3000:3000"
   api:
-    image: julianovidal/balance-api:latest
+    image: docker.io/julianovidal/balance-api:latest
     restart: on-failure
     ports:
-      - 5000:5000
+      - "5000:5000"
     environment:
       DB_HOST: db
       POSTGRES_DB: balance
@@ -20,7 +20,7 @@ services:
     image: postgres:15
     restart: on-failure
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_DB: balance

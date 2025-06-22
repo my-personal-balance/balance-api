@@ -2,7 +2,7 @@ import pytest
 
 from balance_api.api import security
 from balance_api.app import app
-from balance_api.data.models import User
+from balance_api.data.models.users import User
 
 
 @pytest.fixture(autouse=True)

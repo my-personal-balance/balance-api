@@ -1,32 +1,29 @@
-[tool.poetry]
+[project]
 name = "balance-api"
 version = "0.1.0"
-description = ""
-authors = ["Juliano Vidal <juliano.vidal@gmail.com>"]
+description = "My Personal Balance API"
 readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.16.2",
+    "backoff>=2.2.1",
+    "flask>=3.1.1",
+    "flask-compress>=1.17",
+    "flask-cors>=6.0.1",
+    "flask-jwt-extended[asymmetric-crypto]>=4.7.1",
+    "flask-sqlalchemy>=3.1.1",
+    "openpyxl>=3.1.5",
+    "psycopg[binary]>=3.2.9",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-flask = "^3.0.3"
-flask-cors = "^4.0.1"
-flask-compress = "^1.15"
-flask-sqlalchemy = "^3.1.1"
-flask-jwt-extended = {extras = ["asymmetric-crypto"], version = "^4.6.0"}
-alembic = "^1.13.2"
-psycopg = {extras = ["binary"], version = "^3.2.1"}
-backoff = "^2.2.1"
-openpyxl = "^3.1.5"
-
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.8.0"
-pytest = "^8.3.2"
-
-
-[tool.poetry.group.production.dependencies]
-uwsgi = "^2.0.26"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "pytest>=8.4.1",
+]
+production = [
+    "uwsgi>=2.0.30",
+]
+release = [
+    "python-semantic-release>=10.1.0",
+]

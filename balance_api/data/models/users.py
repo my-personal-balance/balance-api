@@ -12,7 +12,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str]
-    email: Mapped[str]
+    email: Mapped[str] = mapped_column(unique=True)
     currency: Mapped[CurrencyType] = mapped_column(default=CurrencyType.EUR)
 
     created_at: Mapped[datetime] = mapped_column(

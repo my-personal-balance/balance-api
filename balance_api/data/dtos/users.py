@@ -13,7 +13,7 @@ class User:
 
     @classmethod
     def serialize(cls, user: m_User):
-        return User(user.id, user.name, user.email, user.currency)
+        return User(user.id, user.name, user.email, user.currency.value)
 
     @classmethod
     def serializer_many(cls, users: List[m_User]):

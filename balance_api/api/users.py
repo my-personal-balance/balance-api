@@ -20,7 +20,6 @@ def me(session: Session):
 
 
 @bp.post("/users")
-@jwt_required()
 @database_operation(max_tries=3)
 def create_users(session: Session):
     user_resource = request.json

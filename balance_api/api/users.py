@@ -23,5 +23,10 @@ def me(session: Session):
 @database_operation(max_tries=3)
 def create_users(session: Session):
     user_resource = request.json
-    user = create_user(user_resource, session)
-    return jsonify(User.serialize(user)), 201
+    try:
+        user = create_user(user_resource, session)
+        return jsonify(User.serialize(user)), 201
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

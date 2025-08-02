@@ -3,6 +3,7 @@ from datetime import datetime, UTC
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm.session import Session
+from sqlalchemy.exc import IntegrityError
 
 from balance_api.data.models import Base, CurrencyType
 
@@ -41,5 +42,9 @@ def find_user(user_id: int, session: Session) -> User | None:
 def create_user(user: dict, session: Session) -> User:
     new_user = User(**user)
     session.add(new_user)
-    session.commit()
-    return new_user
+    try:
+        session.commit()
+        return new_user
+    except IntegrityError as e:
+        session.rollback()
+        raise ValueError(f"User with email {user['email']} already exists")

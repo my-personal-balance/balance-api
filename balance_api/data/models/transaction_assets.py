@@ -7,7 +7,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.orm.session import Session
 
-from balance_api.exceptions import AssetNotFoundException
 from balance_api.data.models import Base
 from balance_api.data.models.assets import Asset, find_asset
 from balance_api.data.models.transactions import Transaction
@@ -53,7 +52,7 @@ def create_transaction_asset_with_isin(
 ) -> TransactionAsset:
     asset = find_asset(isin, session)
     if not asset:
-        raise AssetNotFoundException(detail=f"Asset {isin} not found.")
+        raise ValueError(f"Asset {isin} not found.")
 
     return create_transaction_asset(
         transaction=transaction, asset=asset, session=session

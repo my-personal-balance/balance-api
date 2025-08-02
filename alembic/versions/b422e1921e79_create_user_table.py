@@ -9,7 +9,7 @@ from alembic import op
 from sqlalchemy import TEXT, Column, INTEGER, DateTime
 from sqlalchemy.engine.reflection import Inspector
 
-from balance_api.data.models import User
+from balance_api.data.models.users import User
 
 # revision identifiers, used by Alembic.
 revision = "b422e1921e79"

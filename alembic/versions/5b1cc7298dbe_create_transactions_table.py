@@ -10,7 +10,7 @@ from alembic import op
 from sqlalchemy import TEXT, Column, INTEGER, ForeignKey, Enum, DATE, FLOAT, DateTime
 from sqlalchemy.engine.reflection import Inspector
 
-from balance_api.data.models import Transaction, TransactionType
+from balance_api.data.models.transactions import Transaction, TransactionType
 
 # revision identifiers, used by Alembic.
 revision = "5b1cc7298dbe"

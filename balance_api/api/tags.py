@@ -4,10 +4,7 @@ from sqlalchemy.orm.session import Session
 
 from balance_api.data.dtos.tags import Tag
 from balance_api.data.db import database_operation
-from balance_api.data.models.tags import (
-    find_tag as find_t,
-    list_tags as list_t,
-)
+from balance_api.services.tags import TagService
 
 bp = Blueprint("tags", __name__)
 
@@ -17,7 +14,8 @@ bp = Blueprint("tags", __name__)
 @database_operation(max_tries=3)
 def find_tag(tag_id: int, session: Session):
     user_id = get_jwt_identity()
-    tag = find_t(int(user_id), tag_id, session)
+    tag_service = TagService(session)
+    tag = tag_service.find_tag(int(user_id), tag_id, session)
     if tag:
         return jsonify(Tag.serialize(tag))
     return {}, 404
@@ -28,5 +26,6 @@ def find_tag(tag_id: int, session: Session):
 @database_operation(max_tries=3)
 def list_tags(session: Session):
     user_id = get_jwt_identity()
-    tags = list_t(int(user_id), session)
+    tag_service = TagService(session)
+    tags = tag_service.list_tags(int(user_id))
     return jsonify({"tags": Tag.serialize_many(tags)})

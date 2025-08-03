@@ -5,6 +5,7 @@ from sqlalchemy.orm.session import Session
 from balance_api.data.db import database_operation
 from balance_api.data.dtos.users import User
 from balance_api.data.models.users import find_user, create_user
+from balance_api.services.tags import TagService
 
 bp = Blueprint("users", __name__)
 
@@ -25,6 +26,8 @@ def create_users(session: Session):
     user_resource = request.json
     try:
         user = create_user(user_resource, session)
+        tag_service = TagService(session)
+        tag_service.init_tags_for_user(user.id)
         return jsonify(User.serialize(user)), 201
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

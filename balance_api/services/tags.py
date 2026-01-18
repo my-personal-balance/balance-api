@@ -14,13 +14,13 @@ class TagService:
 
     def create_tag(self, user_id: int, tag_value: str) -> Tag:
         return find_or_create_account_tag(user_id, tag_value, self.session)
-    
+
     def find_tag(self, user_id: int, tag_id: int) -> Tag:
         return find_tag_db(user_id, tag_id, self.session)
-    
+
     def list_tags(self, user_id: int) -> List[Tag]:
         return list_tags_db(user_id, self.session)
-    
+
     def init_tags_for_user(self, user_id: int) -> List[Tag]:
         tags = [
             "Miscellaneous",

@@ -88,7 +88,7 @@ def update_transaction(user_id: int, transaction_resource: dict, session: Sessio
 def patch_transaction(user_id: int, transaction_resource: dict, session: Session):
     transaction_data = Transaction(**transaction_resource)
     if transaction_data.id:
-        transaction = find_transaction(user_id, transaction_data.id, session)
+        transaction = find_transaction(user_id, int(transaction_data.id), session)
         if transaction:
             if transaction_data.date:
                 transaction.date = transaction_data.date
@@ -109,7 +109,9 @@ def patch_transaction(user_id: int, transaction_resource: dict, session: Session
     return None
 
 
-def find_transaction(user_id: int, transaction_id: int, session: Session):
+def find_transaction(
+    user_id: int, transaction_id: int, session: Session
+) -> Transaction | None:
     stmt = (
         select(Transaction)
         .join(Account)

@@ -75,6 +75,17 @@ def update_transaction(transaction_id: int, session: Session):
     return jsonify(Transaction.serialize(updated_transaction)), 200
 
 
+@bp.patch("/transactions/<transaction_id>")
+@jwt_required()
+@database_operation(max_tries=3)
+def patch_update_transaction(transaction_id: int, session: Session):
+    user_id = get_jwt_identity()
+    transaction_data = request.json
+    transaction_data["id"] = transaction_id
+    updated_transaction = patch_transaction(int(user_id), transaction_data, session)
+    return jsonify(Transaction.serialize(updated_transaction)), 200
+
+
 @bp.patch("/transactions")
 @jwt_required()
 @database_operation(max_tries=3)

@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from balance_api.api import (
     accounts,
+    auto_classify,
     reports,
     split_transactions,
     tags,
@@ -27,6 +28,7 @@ def create_app():
 
     _app.register_blueprint(oauth.bp)
     _app.register_blueprint(accounts.bp)
+    _app.register_blueprint(auto_classify.bp)
     _app.register_blueprint(reports.bp)
     _app.register_blueprint(split_transactions.bp)
     _app.register_blueprint(tags.bp)

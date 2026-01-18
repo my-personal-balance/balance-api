@@ -4,6 +4,8 @@ services:
     restart: on-failure
     ports:
       - "3000:3000"
+    depends_on:
+      - api
   api:
     image: docker.io/julianovidal/balance-api:latest
     restart: on-failure
@@ -14,8 +16,16 @@ services:
       POSTGRES_DB: balance
       POSTGRES_USER: balance
       POSTGRES_PASSWORD: passw0rd
+      CLASSIFY_HOST: http://classify:8000
     volumes:
       - ../.ssh/:/home/api/.ssh
+    depends_on:
+      - db
+  classify:
+    image: docker.io/julianovidal/balance-classify:latest
+    restart: on-failure
+    ports:
+      - "8000:8000"
   db:
     image: postgres:15
     restart: on-failure
@@ -28,4 +38,3 @@ services:
       POSTGRES_PASSWORD: passw0rd
     volumes:
       - ./data/db:/var/lib/postgresql/data
-

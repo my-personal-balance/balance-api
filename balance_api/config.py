@@ -29,3 +29,5 @@ JWT_ACCESS_TOKEN_EXPIRES = 3600
 
 # JWT_PRIVATE_KEY = os.getenv("RSA256_CERT_PATH", ".ssh/id_rsa")
 # JWT_PUBLIC_KEY = os.getenv("RSA256_CERT_PATH", ".ssh/id_rsa.pub")
+
+CLASSIFY_HOST = os.getenv("CLASSIFY_HOST", "http://localhost:8000")

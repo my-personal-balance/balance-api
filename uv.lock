@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.13"
 resolution-markers = [
     "platform_python_implementation != 'PyPy'",
@@ -52,6 +52,7 @@ dependencies = [
     { name = "flask-sqlalchemy" },
     { name = "openpyxl" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "requests" },
 ]
 
 [package.dev-dependencies]
@@ -77,6 +78,7 @@ requires-dist = [
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.9" },
+    { name = "requests", specifier = ">=2.32.4" },
 ]
 
 [package.metadata.requires-dev]
